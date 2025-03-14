@@ -5,15 +5,18 @@ import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.springframework.http.ResponseEntity;
+
 import java.util.List;
 import java.util.UUID;
+import java.util.Date;
 
 /**
  * User Service
@@ -30,7 +33,7 @@ public class UserService {
 
   private final UserRepository userRepository;
 
-  @Autowired
+  // @Autowired
   public UserService(@Qualifier("userRepository") UserRepository userRepository) {
     this.userRepository = userRepository;
   }
@@ -41,7 +44,8 @@ public class UserService {
 
   public User createUser(User newUser) {
     newUser.setToken(UUID.randomUUID().toString());
-    newUser.setStatus(UserStatus.OFFLINE);
+    newUser.setStatus(UserStatus.ONLINE);
+    newUser.setCreationDate(new Date());
     checkIfUserExists(newUser);
     // saves the given entity but data is only persisted in the database once
     // flush() is called
@@ -50,6 +54,53 @@ public class UserService {
 
     log.debug("Created Information for User: {}", newUser);
     return newUser;
+  }
+
+  public User loginUser(String username, String password) {
+    User user = userRepository.findByUsername(username);
+    if (user != null && user.getPassword().equals(password)) {
+      user.setStatus(UserStatus.ONLINE);
+      return user;
+    } else {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Username or password does not match");
+    }
+  }
+
+
+  public ResponseEntity<String> logoutUser(String token) {
+      System.out.println("Received Token: " + token);
+      User user = userRepository.findByToken(token);
+      if (user != null) {
+          System.out.println("User found with token: " + user.getToken());
+          user.setStatus(UserStatus.OFFLINE);
+          userRepository.save(user);
+          return ResponseEntity.ok("{\"message\": \"Logout successful\"}");
+      } else {
+          System.out.println("No user found with token: " + token);
+          throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+      }
+  }
+
+  public User getUserById(Long id) {
+    return userRepository.findById(id)
+      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+  }
+  public User getUserByToken(String token) {
+    User user = userRepository.findByToken(token);
+
+    return user;
+}
+
+  public User updateUser(Long id, User updatedUser) {
+    System.out.println("Updating User with ID: {}" + id);
+    User user = getUserById(id);
+    user.setUsername(updatedUser.getUsername());
+    user.setPassword(updatedUser.getPassword());
+    user.setBirthDate(updatedUser.getBirthDate());
+    user = userRepository.save(user);
+    userRepository.flush();
+    System.out.println("Updated Information for User: {}" + user);
+    return user;
   }
 
   /**
@@ -64,16 +115,11 @@ public class UserService {
    */
   private void checkIfUserExists(User userToBeCreated) {
     User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
-    User userByName = userRepository.findByName(userToBeCreated.getName());
 
     String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
-    if (userByUsername != null && userByName != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          String.format(baseErrorMessage, "username and the name", "are"));
-    } else if (userByUsername != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
-    } else if (userByName != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "name", "is"));
-    }
+    if (userByUsername != null && !userByUsername.getId().equals(userToBeCreated.getId())) {
+      log.error("Conflict: User with username {} already exists", userToBeCreated.getUsername());
+      throw new ResponseStatusException(HttpStatus.CONFLICT, String.format(baseErrorMessage, "username", "is"));
+    } 
   }
 }

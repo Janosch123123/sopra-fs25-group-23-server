@@ -3,13 +3,17 @@ package ch.uzh.ifi.hase.soprafs24.controller;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.sql.Date;
 
 /**
  * User Controller
@@ -42,6 +46,17 @@ public class UserController {
     return userGetDTOs;
   }
 
+  @GetMapping("/users/{id}")
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public UserGetDTO getUserById(@PathVariable Long id) {
+    User user = userService.getUserById(id);
+    if (user == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+    }
+    return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
+  }
+
   @PostMapping("/users")
   @ResponseStatus(HttpStatus.CREATED)
   @ResponseBody
@@ -52,6 +67,76 @@ public class UserController {
     // create user
     User createdUser = userService.createUser(userInput);
     // convert internal representation of user back to API
-    return DTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
+    UserGetDTO userGetDTO = DTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
+    userGetDTO.setToken(createdUser.getToken());
+    return userGetDTO;
+  }
+
+  @PostMapping("/auth/login")
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public UserGetDTO loginUser(@RequestBody UserLoginDTO userLoginDTO) {
+    User user = userService.loginUser(userLoginDTO.getUsername(), userLoginDTO.getPassword());
+    return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
+  }
+
+  @PostMapping("/auth/logout")
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public Map<String, String> logoutUser(@RequestBody Map<String, String> requestBody) {
+    String token = requestBody.get("token");
+    userService.logoutUser(token);
+    return Map.of("message", "Logout successful");
+  }
+
+  @PostMapping("/auth/verify")
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public Map<String, Object> verifyUser(@RequestBody Map<String, String> requestBody) {
+    String token = requestBody.get("formatedToken");
+    User user = userService.getUserByToken(token);
+    if (user == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+    }
+    return Map.of("authorized", true);
+  }
+  @PostMapping("/auth/verify/user")
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public Map<String, Object> verifyUserEdit(@RequestBody Map<String, String> requestBody) {
+    String token = requestBody.get("formatedToken");
+    User user = userService.getUserByToken(token);
+    if (user == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+    }
+    if (user.getId() != Long.parseLong(requestBody.get("id"))) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid token");
+    }
+    return Map.of("authorized", true);
+  }
+
+  @PutMapping("/users/{id}")
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public UserGetDTO editUserProfile(@RequestBody Map<String, Object> requestBody) {
+    Long id = requestBody.get("id") != null ? Long.valueOf(requestBody.get("id").toString()) : null;
+    String username = requestBody.get("username") != null ? requestBody.get("username").toString() : null;
+    String birthDateString = requestBody.get("birthDate") != null ? requestBody.get("birthDate").toString() : null;
+    Date birthDate = birthDateString != null ? Date.valueOf(birthDateString) : null;
+
+    if (id == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID is required");
+    }
+
+    User user = userService.getUserById(id);
+    if (user == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+    }
+
+    user.setUsername(username);
+    user.setBirthDate(birthDate);
+
+    User updatedUser = userService.updateUser(id, user);
+    return DTOMapper.INSTANCE.convertEntityToUserGetDTO(updatedUser);
   }
 }
