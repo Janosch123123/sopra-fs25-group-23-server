@@ -13,6 +13,28 @@ public class UserGetDTO {
   private Date creationDate;
   private String token; // added token field
   private Date birthDate; // added birthDate field
+  private int wins;
+  private int kills;
+  private int level;
+
+  public int getLevel() {
+    return level;
+  }
+  public void setLevel(int level) {
+    this.level = level;
+  }
+  public int getWins() {
+    return wins;
+  }
+  public void setWins(int wins) {
+    this.wins = wins;
+  }
+  public int getKills() {
+    return kills;
+  }
+  public void setKills(int kills) {
+    this.kills = kills;
+  }
 
   public Long getId() {
     return id;

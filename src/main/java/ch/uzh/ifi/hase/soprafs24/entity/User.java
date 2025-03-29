@@ -44,6 +44,36 @@ public class User implements Serializable {
   @Column
   private Date birthDate; // added birthDate field
 
+  @Column
+  private int wins;
+
+  @Column
+  private int kills;
+
+  @Column
+  private int level;
+
+  public int getLevel() {
+    return level;
+  }
+  public void setLevel(int level) {
+    this.level = level;
+  }
+
+  public int getWins() {
+    return wins;
+  }
+  public void setWins(int wins) {
+    this.wins = wins;
+  }
+
+  public int getKills() {
+    return kills;
+  }
+  public void setKills(int kills) {
+    this.kills = kills;
+  }
+
   public Long getId() {
     return id;
   }
