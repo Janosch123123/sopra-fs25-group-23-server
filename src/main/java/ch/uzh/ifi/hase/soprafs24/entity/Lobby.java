@@ -15,7 +15,6 @@ import java.util.List;
  * - unique = true -> this value must be unqiue across the database -> composes
  * the primary key
  */
-
 @Entity
 @Table(name = "LOBBY")
 public class Lobby implements Serializable {
@@ -26,7 +25,7 @@ public class Lobby implements Serializable {
     @GeneratedValue
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true, unique = false)
     private String name;
 
     @Column(nullable = false)

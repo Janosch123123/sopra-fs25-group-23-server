@@ -25,7 +25,17 @@ public class LobbyController {
     this.lobbyService = lobbyService;
   }
 
-  @PostMapping("/lobbies")
-  @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
+  @PostMapping("/lobbies/create")
+  @ResponseStatus(HttpStatus.CREATED)
+  public LobbyGetDTO createLobby(@RequestHeader("X-Token") String token) {
+      // Get the authenticated user from the token
+      User user = userService.getUserByToken(token);
+      
+      // Create a new lobby with that user as host
+      // Perhaps generate a random name or ID for the lobby
+      Lobby createdLobby = lobbyService.createLobby(user);
+      
+      // Convert the created lobby to a DTO and return it
+      return DTOMapper.INSTANCE.convertEntityToLobbyGetDTO(createdLobby);
+  }
 }
