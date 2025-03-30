@@ -46,7 +46,7 @@ public class UserController {
     return userGetDTOs;
   }
 
-  @GetMapping("/users/{id}")
+  @GetMapping("/users/{id}") // get user by id
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public UserGetDTO getUserById(@PathVariable Long id) {
@@ -57,7 +57,7 @@ public class UserController {
     return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
   }
 
-  @PostMapping("/users")
+  @PostMapping("/users") // register user
   @ResponseStatus(HttpStatus.CREATED)
   @ResponseBody
   public UserGetDTO createUser(@RequestBody UserPostDTO userPostDTO) {
@@ -72,7 +72,7 @@ public class UserController {
     return userGetDTO;
   }
 
-  @PostMapping("/auth/login")
+  @PostMapping("/auth/login") // Action: log in
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public UserGetDTO loginUser(@RequestBody UserLoginDTO userLoginDTO) {
