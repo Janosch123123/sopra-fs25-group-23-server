@@ -96,17 +96,16 @@ public class UserService {
     return user;
 }
 
-  public User updateUser(Long id, User updatedUser) {
-    System.out.println("Updating User with ID: {}" + id);
-    User user = getUserById(id);
-    user.setUsername(updatedUser.getUsername());
-    user.setPassword(updatedUser.getPassword());
-    user.setBirthDate(updatedUser.getBirthDate());
-    user = userRepository.save(user);
-    userRepository.flush();
-    System.out.println("Updated Information for User: {}" + user);
-    return user;
-  }
+  // public User updateUser(Long id, User updatedUser) {
+  //   System.out.println("Updating User with ID: {}" + id);
+  //   User user = getUserById(id);
+  //   user.setUsername(updatedUser.getUsername());
+  //   user.setPassword(updatedUser.getPassword());
+  //   user = userRepository.save(user);
+  //   userRepository.flush();
+  //   System.out.println("Updated Information for User: {}" + user);
+  //   return user;
+  // }
 
   /**
    * This is a helper method that will check the uniqueness criteria of the

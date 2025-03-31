@@ -42,9 +42,6 @@ public class User implements Serializable {
   private Date creationDate;
 
   @Column
-  private Date birthDate; // added birthDate field
-
-  @Column
   private int wins;
 
   @Column
@@ -124,13 +121,4 @@ public class User implements Serializable {
   public void setCreationDate(Date creationDate) {
     this.creationDate = creationDate;
   }
-
-  public Date getBirthDate() {
-    return birthDate;
-  }
-
-  public void setBirthDate(Date birthDate) {
-    this.birthDate = birthDate;
-  }
-
 }
