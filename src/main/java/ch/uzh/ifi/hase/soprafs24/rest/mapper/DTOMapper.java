@@ -4,10 +4,6 @@ import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPostDTO;
 
-import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
-import ch.uzh.ifi.hase.soprafs24.rest.dto.LobbyGetDTO;
-import ch.uzh.ifi.hase.soprafs24.rest.dto.LobbyPostDTO;
-
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
@@ -39,16 +35,4 @@ public interface DTOMapper {
   @Mapping(source = "token", target = "token") // added mapping for token
   @Mapping(source = "birthDate", target = "birthDate") // added mapping for birthDate
   UserGetDTO convertEntityToUserGetDTO(User user);
-
-/* Added mapping for lobbies */
-
-  @Mapping(source = "name", target = "name")
-  @Mapping(source = "status", target = "status")
-  Lobby convertLobbyPostDTOtoEntity(LobbyPostDTO lobbyPostDTO);
-  
-  @Mapping(source = "id", target = "id")
-  @Mapping(source = "name", target = "name")
-  @Mapping(source = "status", target = "status")
-  @Mapping(source = "players", target = "players")
-  LobbyGetDTO convertEntityToLobbyGetDTO(Lobby lobby);
 }

@@ -21,6 +21,7 @@ public class Application {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public String helloWorld() {
+    System.out.println("Hello World endpoint was called!");
     return "The application is running.";
   }
 
