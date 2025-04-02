@@ -46,7 +46,12 @@ public class UserService {
     newUser.setToken(UUID.randomUUID().toString());
     newUser.setStatus(UserStatus.ONLINE);
     newUser.setCreationDate(new Date());
+    newUser.setWins(0);
+    newUser.setKills(0);
+    newUser.setLevel(0);
+
     checkIfUserExists(newUser);
+
     // saves the given entity but data is only persisted in the database once
     // flush() is called
     newUser = userRepository.save(newUser);
@@ -91,17 +96,16 @@ public class UserService {
     return user;
 }
 
-  public User updateUser(Long id, User updatedUser) {
-    System.out.println("Updating User with ID: {}" + id);
-    User user = getUserById(id);
-    user.setUsername(updatedUser.getUsername());
-    user.setPassword(updatedUser.getPassword());
-    user.setBirthDate(updatedUser.getBirthDate());
-    user = userRepository.save(user);
-    userRepository.flush();
-    System.out.println("Updated Information for User: {}" + user);
-    return user;
-  }
+  // public User updateUser(Long id, User updatedUser) {
+  //   System.out.println("Updating User with ID: {}" + id);
+  //   User user = getUserById(id);
+  //   user.setUsername(updatedUser.getUsername());
+  //   user.setPassword(updatedUser.getPassword());
+  //   user = userRepository.save(user);
+  //   userRepository.flush();
+  //   System.out.println("Updated Information for User: {}" + user);
+  //   return user;
+  // }
 
   /**
    * This is a helper method that will check the uniqueness criteria of the

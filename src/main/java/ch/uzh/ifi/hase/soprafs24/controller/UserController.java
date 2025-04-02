@@ -3,7 +3,6 @@ package ch.uzh.ifi.hase.soprafs24.controller;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPostDTO;
-import ch.uzh.ifi.hase.soprafs24.rest.dto.UserLoginDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -13,7 +12,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.sql.Date;
 
 /**
  * User Controller
@@ -46,7 +44,7 @@ public class UserController {
     return userGetDTOs;
   }
 
-  @GetMapping("/users/{id}")
+  @GetMapping("/users/{id}") // get user by id
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public UserGetDTO getUserById(@PathVariable Long id) {
@@ -57,7 +55,7 @@ public class UserController {
     return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
   }
 
-  @PostMapping("/users")
+  @PostMapping("/users") // register user
   @ResponseStatus(HttpStatus.CREATED)
   @ResponseBody
   public UserGetDTO createUser(@RequestBody UserPostDTO userPostDTO) {
@@ -72,15 +70,15 @@ public class UserController {
     return userGetDTO;
   }
 
-  @PostMapping("/auth/login")
+  @PostMapping("/auth/login") // Action: log in
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
-  public UserGetDTO loginUser(@RequestBody UserLoginDTO userLoginDTO) {
-    User user = userService.loginUser(userLoginDTO.getUsername(), userLoginDTO.getPassword());
+  public UserGetDTO loginUser(@RequestBody User User) {
+    User user = userService.loginUser(User.getUsername(), User.getPassword());
     return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
   }
 
-  @PostMapping("/auth/logout")
+  @PostMapping("/auth/logout") // Not used currently
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public Map<String, String> logoutUser(@RequestBody Map<String, String> requestBody) {
@@ -89,7 +87,7 @@ public class UserController {
     return Map.of("message", "Logout successful");
   }
 
-  @PostMapping("/auth/verify")
+  @PostMapping("/auth/verify") // This is just in general: any logged in user can see this
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public Map<String, Object> verifyUser(@RequestBody Map<String, String> requestBody) {
@@ -100,43 +98,42 @@ public class UserController {
     }
     return Map.of("authorized", true);
   }
-  @PostMapping("/auth/verify/user")
-  @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
-  public Map<String, Object> verifyUserEdit(@RequestBody Map<String, String> requestBody) {
-    String token = requestBody.get("formatedToken");
-    User user = userService.getUserByToken(token);
-    if (user == null) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
-    }
-    if (user.getId() != Long.parseLong(requestBody.get("id"))) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid token");
-    }
-    return Map.of("authorized", true);
-  }
+  // @PostMapping("/auth/verify/user") // This is if this site is specifically for a user with a certain ID.
+  // @ResponseStatus(HttpStatus.OK)
+  // @ResponseBody
+  // public Map<String, Object> verifyUserEdit(@RequestBody Map<String, String> requestBody) {
+  //   String token = requestBody.get("formatedToken");
+  //   User user = userService.getUserByToken(token);
+  //   if (user == null) {
+  //     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+  //   }
+  //   if (user.getId() != Long.parseLong(requestBody.get("id"))) {
+  //     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid token");
+  //   }
+  //   return Map.of("authorized", true);
+  // }
 
-  @PutMapping("/users/{id}")
-  @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
-  public UserGetDTO editUserProfile(@RequestBody Map<String, Object> requestBody) {
-    Long id = requestBody.get("id") != null ? Long.valueOf(requestBody.get("id").toString()) : null;
-    String username = requestBody.get("username") != null ? requestBody.get("username").toString() : null;
-    String birthDateString = requestBody.get("birthDate") != null ? requestBody.get("birthDate").toString() : null;
-    Date birthDate = birthDateString != null ? Date.valueOf(birthDateString) : null;
+  // @PutMapping("/users/{id}")
+  // @ResponseStatus(HttpStatus.OK)
+  // @ResponseBody
+  // public UserGetDTO editUserProfile(@RequestBody Map<String, Object> requestBody) {
+  //   Long id = requestBody.get("id") != null ? Long.valueOf(requestBody.get("id").toString()) : null;
+  //   String username = requestBody.get("username") != null ? requestBody.get("username").toString() : null;
+  //   String birthDateString = requestBody.get("birthDate") != null ? requestBody.get("birthDate").toString() : null;
+  //   Date birthDate = birthDateString != null ? Date.valueOf(birthDateString) : null;
 
-    if (id == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID is required");
-    }
+  //   if (id == null) {
+  //     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID is required");
+  //   }
 
-    User user = userService.getUserById(id);
-    if (user == null) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-    }
+  //   User user = userService.getUserById(id);
+  //   if (user == null) {
+  //     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+  //   }
 
-    user.setUsername(username);
-    user.setBirthDate(birthDate);
+  //   user.setUsername(username);
 
-    User updatedUser = userService.updateUser(id, user);
-    return DTOMapper.INSTANCE.convertEntityToUserGetDTO(updatedUser);
-  }
+  //   User updatedUser = userService.updateUser(id, user);
+  //   return DTOMapper.INSTANCE.convertEntityToUserGetDTO(updatedUser);
+  // }
 }

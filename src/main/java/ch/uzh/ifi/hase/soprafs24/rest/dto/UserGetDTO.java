@@ -9,10 +9,30 @@ public class UserGetDTO {
 
   private String username;
   private UserStatus status;
-  private String password;
   private Date creationDate;
   private String token; // added token field
-  private Date birthDate; // added birthDate field
+  private int wins;
+  private int kills;
+  private int level;
+
+  public int getLevel() {
+    return level;
+  }
+  public void setLevel(int level) {
+    this.level = level;
+  }
+  public int getWins() {
+    return wins;
+  }
+  public void setWins(int wins) {
+    this.wins = wins;
+  }
+  public int getKills() {
+    return kills;
+  }
+  public void setKills(int kills) {
+    this.kills = kills;
+  }
 
   public Long getId() {
     return id;
@@ -38,14 +58,6 @@ public class UserGetDTO {
     this.status = status;
   }
 
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
   public Date getCreationDate() {
     return creationDate;
   }
@@ -61,13 +73,4 @@ public class UserGetDTO {
   public void setToken(String token) {
     this.token = token;
   }
-
-  public Date getBirthDate() {
-    return birthDate;
-  }
-
-  public void setBirthDate(Date birthDate) {
-    this.birthDate = birthDate;
-  }
-
 }

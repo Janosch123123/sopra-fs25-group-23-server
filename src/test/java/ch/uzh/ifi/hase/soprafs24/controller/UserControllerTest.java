@@ -150,28 +150,6 @@ public class UserControllerTest {
         .andExpect(status().isNotFound());
   }
 
-  @Test
-  public void updateUserProfile_validUserId_success() throws Exception {
-    Mockito.when(userService.getUserById(anyLong())).thenReturn(testUser);
-    Mockito.when(userService.updateUser(anyLong(), any())).thenReturn(testUser);
-
-    mockMvc.perform(MockMvcRequestBuilders.put("/users/1")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("{\"id\":1,\"username\":\"updatedUsername\",\"birthDate\":\"2000-01-01\"}"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.username").value("updatedUsername"));
-  }
-
-  @Test
-  public void updateUserProfile_invalidUserId_throwsException() throws Exception {
-    Mockito.when(userService.getUserById(anyLong())).thenReturn(null);
-
-    mockMvc.perform(MockMvcRequestBuilders.put("/users/1")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("{\"id\":1,\"username\":\"updatedUsername\",\"birthDate\":\"2000-01-01\"}"))
-        .andExpect(status().isNotFound());
-  }
-
   /**
    * Helper Method to convert userPostDTO into a JSON string such that the input
    * can be processed
