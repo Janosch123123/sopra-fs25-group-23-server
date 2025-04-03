@@ -50,6 +50,9 @@ public class User implements Serializable {
   @Column
   private int level;
 
+  @Column
+  private long lobbyId;
+
   public int getLevel() {
     return level;
   }
@@ -79,8 +82,13 @@ public class User implements Serializable {
     this.id = id;
   }
 
+  public long getLobbyId() {
+    return lobbyId;
+  }
 
-
+  public void setLobbyId(long lobbyId) {
+    this.lobbyId = lobbyId;
+  }
 
   public String getUsername() {
     return username;
