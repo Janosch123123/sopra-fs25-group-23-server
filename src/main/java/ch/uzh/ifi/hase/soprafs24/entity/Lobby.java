@@ -20,16 +20,14 @@ public class Lobby implements Serializable {
     @GeneratedValue
     private Long id;
 
-    // Many-to-One relationship with User (admin)
-    @OneToOne
-    @JoinColumn(name = "admin_id", nullable = false, unique = true)
-    private User admin;
+    @Column(name = "admin_id")
+    private Long adminId;
     
-    // Optional: One-to-Many relationship with User (participants)
-    // If you want to manage this relationship from the Lobby side as well
-    @OneToMany(mappedBy = "lobby")
-    private List<User> participants = new ArrayList<>();
-
+    // Change from a list of User objects to a list of user IDs
+    @ElementCollection
+    @CollectionTable(name = "lobby_participants", joinColumns = @JoinColumn(name = "lobby_id"))
+    @Column(name = "participant_id")
+    private List<Long> participantIds = new ArrayList<>();
 
 
     // Getters and Setters
@@ -41,31 +39,52 @@ public class Lobby implements Serializable {
         this.id = id;
     }
     
-    public User getAdmin() {
-        return admin;
+    public Long getAdminId() {
+        return adminId;
     }
     
-    public void setAdmin(User admin) {
-        this.admin = admin;
+    public void setAdminId(Long adminId) {
+        this.adminId = adminId;
     }
     
-    public List<User> getParticipants() {
-        return participants;
+    public List<Long> getParticipantIds() {
+        return participantIds;
     }
     
-    public void setParticipants(List<User> participants) {
-        this.participants = participants;
+    public void setParticipantIds(List<Long> participantIds) {
+        this.participantIds = participantIds;
     }
     
-    // Helper method to add a participant
+    // Helper method to add a participant ID
+    public void addParticipantId(Long userId) {
+        if (!this.participantIds.contains(userId)) {
+            this.participantIds.add(userId);
+        }
+    }
+    
+    // Helper method to remove a participant ID
+    public void removeParticipantId(Long userId) {
+        this.participantIds.remove(userId);
+    }
+    
+    // Convenience method to add a participant using User object
     public void addParticipant(User user) {
-        this.participants.add(user);
-        user.setLobby(this); // Set the bidirectional relationship
+        if (user != null && user.getId() != null) {
+            addParticipantId(user.getId());
+        }
     }
     
-    // Helper method to remove a participant
+    // Convenience method to remove a participant using User object
     public void removeParticipant(User user) {
-        this.participants.remove(user);
-        user.setLobby(null); // Clear the bidirectional relationship
+        if (user != null && user.getId() != null) {
+            removeParticipantId(user.getId());
+        }
+    }
+    
+    // Helper method to set admin using User object
+    public void setAdminFromUser(User user) {
+        if (user != null) {
+            this.adminId = user.getId();
+        }
     }
 }

@@ -50,10 +50,6 @@ public class User implements Serializable {
   @Column
   private int level;
 
-  // Add the ManyToOne relationship here
-  @ManyToOne
-  @JoinColumn(name = "lobby_id")
-  private Lobby lobby;
 
   public int getLevel() {
     return level;
@@ -82,15 +78,6 @@ public class User implements Serializable {
 
   public void setId(Long id) {
     this.id = id;
-  }
-
-  // Add these getter and setter methods for the lobby field
-  public Lobby getLobby() {
-    return lobby;
-  }
-
-  public void setLobby(Lobby lobby) {
-    this.lobby = lobby;
   }
 
   public String getUsername() {

@@ -22,11 +22,13 @@ public class LobbyService {
     
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
     
     @Autowired
-    public LobbyService(LobbyRepository lobbyRepository, UserRepository userRepository) {
+    public LobbyService(LobbyRepository lobbyRepository, UserRepository userRepository, UserService userService) {
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
     
     /**
@@ -44,7 +46,7 @@ public class LobbyService {
         
         // Create new lobby
         Lobby lobby = new Lobby();
-        lobby.setAdmin(admin);
+        lobby.setAdminId(admin.getId());
         
         // Save to get an ID
         Lobby savedLobby = lobbyRepository.save(lobby);
@@ -59,78 +61,36 @@ public class LobbyService {
     }
     
     /**
-     * Adds a user to a lobby
+     * Creates a new lobby with user identified by token as admin
      *
-     * @param lobbyId the ID of the lobby
-     * @param user the user to add
-     * @return the updated lobby
+     * @param token the authentication token for the user who will be admin
+     * @return the created lobby
+     * @throws IllegalArgumentException if token is invalid or user not found
      */
-    public Lobby joinLobby(Long lobbyId, User user) {
-        if (lobbyId == null || user == null) {
-            throw new IllegalArgumentException("Lobby ID and user cannot be null");
+    public Lobby createLobbyFromToken(String token) {
+        if (token == null || token.isEmpty()) {
+            throw new IllegalArgumentException("Authentication token cannot be null or empty");
         }
         
-        // Find the lobby
-        Lobby lobby = lobbyRepository.findById(lobbyId)
-            .orElseThrow(() -> new IllegalArgumentException("Lobby not found: " + lobbyId));
-            
-        log.debug("User {} joining lobby {}", user.getUsername(), lobbyId);
+        // Get user from token
+        User user = userService.getUserByToken(token);
         
-        // Add user to lobby
-        lobby.addParticipant(user);
-        userRepository.save(user);
+        if (user == null) {
+            throw new IllegalArgumentException("Invalid token or user not found");
+        }
         
-        return lobby;
+        // Use existing method to create the lobby with the found user
+        return createLobby(user);
     }
     
     /**
-     * Removes a user from a lobby
+     * Gets a lobby by its ID
      *
-     * @param lobbyId the ID of the lobby
-     * @param user the user to remove
-     * @return the updated lobby or null if the lobby was deleted
-     */
-    public Lobby leaveLobby(Long lobbyId, User user) {
-        if (lobbyId == null || user == null) {
-            throw new IllegalArgumentException("Lobby ID and user cannot be null");
-        }
-        
-        // Find the lobby
-        Lobby lobby = lobbyRepository.findById(lobbyId)
-            .orElseThrow(() -> new IllegalArgumentException("Lobby not found: " + lobbyId));
-            
-        log.debug("User {} leaving lobby {}", user.getUsername(), lobbyId);
-        
-        // Remove user from lobby
-        lobby.removeParticipant(user);
-        userRepository.save(user);
-        
-        // Check if lobby is now empty and user was admin
-        if (user.equals(lobby.getAdmin()) && lobby.getParticipants().isEmpty()) {
-            log.info("Deleting empty lobby {}", lobbyId);
-            lobbyRepository.delete(lobby);
-            return null;
-        }
-        
-        return lobby;
-    }
-    
-    /**
-     * Gets all lobbies
-     *
-     * @return list of all lobbies
-     */
-    public List<Lobby> getAllLobbies() {
-        return lobbyRepository.findAll();
-    }
-    
-    /**
-     * Gets a lobby by ID
-     *
-     * @param lobbyId the ID of the lobby
+     * @param lobbyId the ID of the lobby to retrieve
      * @return the lobby if found
      */
-    public Optional<Lobby> getLobbyById(Long lobbyId) {
-        return lobbyRepository.findById(lobbyId);
+    public Lobby getLobbyById(Long lobbyId) {
+        return lobbyRepository.findById(lobbyId)
+                .orElseThrow(() -> new IllegalArgumentException("Lobby not found with ID: " + lobbyId));
     }
 }

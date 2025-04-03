@@ -10,5 +10,6 @@ import java.util.List;
 @Repository("lobbyRepository")
 public interface LobbyRepository extends JpaRepository<Lobby, Long> {
     // Find lobbies by admin
-    List<Lobby> findByAdmin(User admin);
+    List<Lobby> findByAdminId(Long adminId);
+
 }

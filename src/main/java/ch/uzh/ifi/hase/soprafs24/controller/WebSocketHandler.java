@@ -12,10 +12,22 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 
+import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
+import ch.uzh.ifi.hase.soprafs24.service.LobbyService;
+import ch.uzh.ifi.hase.soprafs24.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+
 public class WebSocketHandler extends TextWebSocketHandler {
     
     private static final Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @Autowired
+    private LobbyService lobbyService;
+
+    @Autowired
+    private UserService userService;
 
     // Add this constructor
     public WebSocketHandler() {
@@ -58,15 +70,40 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 return;
             }
             
-            // Check if it's a create_lobby message
-            if ("create_lobby".equals(type)) {
-                handleCreateLobby(session);
-            } else {
-                sendErrorMessage(session, "Unknown message type: " + type);
+        // Check if it's a create_lobby message
+        if ("create_lobby".equals(type)) {
+            // Extract token from session
+            String token = getTokenFromSession(session);
+
+            try {
+                // Get user from token
+                User user = userService.getUserByToken(token);
+                
+                if (user == null) {
+                    sendErrorMessage(session, "Invalid token or user not found");
+                    return;
+                }
+                
+                // Direct call to LobbyService's createLobby method
+                Lobby lobby = lobbyService.createLobby(user);
+                
+                // Send success response with the lobby ID
+                ObjectNode response = mapper.createObjectNode();
+                response.put("type", "lobby_created");
+                response.put("lobbyId", lobby.getId());
+                
+                session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+                logger.info("Created lobby for session: {}", session.getId());
+            } catch (Exception e) {
+                logger.error("Error creating lobby", e);
+                sendErrorMessage(session, "Failed to create lobby: " + e.getMessage());
             }
-        } catch (Exception e) {
-            logger.error("Error processing message", e);
-            sendErrorMessage(session, "Server error: " + e.getMessage());
+        } else {
+            sendErrorMessage(session, "Unknown message type: " + type);
+        }
+        } catch (IOException e) {
+            logger.error("Error parsing message", e);
+            sendErrorMessage(session, "Failed to parse message: " + e.getMessage());
         }
     }
     
@@ -84,25 +121,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         // This method is called when a transport error occurs
         logger.error("Error in WebSocket transport for session: {}", session.getId(), exception);
-    }
-    
-    /**
-     * Handles a request to create a new lobby
-     */
-    private void handleCreateLobby(WebSocketSession session) throws IOException {
-        // Extract token from session
-        String token = getTokenFromSession(session);
-        
-        // In a real implementation, you'd use the token to identify the user
-        // and create a lobby in your database
-        
-        // For now, just send a success response with a dummy lobby ID
-        ObjectNode response = mapper.createObjectNode();
-        response.put("type", "lobby_created");
-        response.put("lobbyId", 12345); // Replace with actual lobby ID from your service
-        
-        session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
-        logger.info("Created lobby for session: {}", session.getId());
     }
     
     /**
