@@ -6,12 +6,16 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.io.IOException;
 
 public class WebSocketHandler extends TextWebSocketHandler {
     
     private static final Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
+    private final ObjectMapper mapper = new ObjectMapper();
 
     // Add this constructor
     public WebSocketHandler() {
@@ -25,19 +29,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
         logger.info("New WebSocket connection established: {}", session.getId());
         
         // Extract token from URL query parameters
-        String query = session.getUri().getQuery();
-        String token = null;
-        if (query != null && query.contains("token=")) {
-            token = query.substring(query.indexOf("token=") + 6);
-            // If there are other parameters after the token, trim them
-            if (token.contains("&")) {
-                token = token.substring(0, token.indexOf("&"));
-            }
-        }
-        
+        String token = getTokenFromSession(session);
         System.out.println("Connection token: " + token);
 
-        ObjectMapper mapper = new ObjectMapper();
         ObjectNode response = mapper.createObjectNode();
         response.put("type", "connection_success");
         response.put("message", "Connection established successfully");
@@ -48,13 +42,32 @@ public class WebSocketHandler extends TextWebSocketHandler {
     
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        // This method is called when a text message is received from the client
+        // Log received message
         System.out.println("handleTextMessage called with message: " + message.getPayload());
-
         logger.info("Received message from {}: {}", session.getId(), message.getPayload());
         
-        // Simply echo the message back (you can implement more logic later)
-        session.sendMessage(new TextMessage("Server received: " + message.getPayload()));
+        try {
+            // Parse the JSON message
+            JsonNode jsonNode = mapper.readTree(message.getPayload());
+            
+            // Extract the message type
+            String type = jsonNode.has("type") ? jsonNode.get("type").asText() : null;
+            
+            if (type == null) {
+                sendErrorMessage(session, "Missing message type");
+                return;
+            }
+            
+            // Check if it's a create_lobby message
+            if ("create_lobby".equals(type)) {
+                handleCreateLobby(session);
+            } else {
+                sendErrorMessage(session, "Unknown message type: " + type);
+            }
+        } catch (Exception e) {
+            logger.error("Error processing message", e);
+            sendErrorMessage(session, "Server error: " + e.getMessage());
+        }
     }
     
     @Override
@@ -71,5 +84,50 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         // This method is called when a transport error occurs
         logger.error("Error in WebSocket transport for session: {}", session.getId(), exception);
+    }
+    
+    /**
+     * Handles a request to create a new lobby
+     */
+    private void handleCreateLobby(WebSocketSession session) throws IOException {
+        // Extract token from session
+        String token = getTokenFromSession(session);
+        
+        // In a real implementation, you'd use the token to identify the user
+        // and create a lobby in your database
+        
+        // For now, just send a success response with a dummy lobby ID
+        ObjectNode response = mapper.createObjectNode();
+        response.put("type", "lobby_created");
+        response.put("lobbyId", 12345); // Replace with actual lobby ID from your service
+        
+        session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+        logger.info("Created lobby for session: {}", session.getId());
+    }
+    
+    /**
+     * Extracts the authentication token from the WebSocket session
+     */
+    private String getTokenFromSession(WebSocketSession session) {
+        String query = session.getUri().getQuery();
+        if (query != null && query.contains("token=")) {
+            String token = query.substring(query.indexOf("token=") + 6);
+            if (token.contains("&")) {
+                token = token.substring(0, token.indexOf("&"));
+            }
+            return token;
+        }
+        return null;
+    }
+    
+    /**
+     * Sends an error message to the client
+     */
+    private void sendErrorMessage(WebSocketSession session, String errorMessage) throws IOException {
+        ObjectNode response = mapper.createObjectNode();
+        response.put("type", "error");
+        response.put("message", errorMessage);
+        session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+        logger.warn("Sent error to client: {}", errorMessage);
     }
 }
