@@ -14,6 +14,10 @@ public class UserGetDTO {
   private int wins;
   private int kills;
   private int level;
+  private int lobbyCode;
+
+  public int getLobbyCode() {return lobbyCode;}
+  public void setLobbyCode(int lobbyCode) {this.lobbyCode = lobbyCode;}
 
   public int getLevel() {
     return level;

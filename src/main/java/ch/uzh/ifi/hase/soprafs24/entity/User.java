@@ -50,6 +50,9 @@ public class User implements Serializable {
   @Column
   private int level;
 
+  @Column
+  private int lobbyCode;
+
 
   public int getLevel() {
     return level;
@@ -119,4 +122,8 @@ public class User implements Serializable {
   public void setCreationDate(Date creationDate) {
     this.creationDate = creationDate;
   }
+
+  public int getLobbyCode() {return lobbyCode;}
+
+  public void setLobbyCode(int lobbyCode) {this.lobbyCode = lobbyCode;}
 }
