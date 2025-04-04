@@ -22,6 +22,9 @@ public class Lobby implements Serializable {
 
     @Column(name = "admin_id")
     private Long adminId;
+
+    @Column
+    private Long gameId;
     
     // Change from a list of User objects to a list of user IDs
     @ElementCollection
@@ -87,4 +90,6 @@ public class Lobby implements Serializable {
             this.adminId = user.getId();
         }
     }
+    public Long getGameId() {return gameId;}
+    public void setGameId(Long gameId) {this.gameId = gameId;}
 }
