@@ -109,4 +109,12 @@ public class LobbyService {
             return false;
         }
     }
+    public void addLobbyCodeToUser(User user, int lobbyCode) {
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null and lobby code must be positive");
+        }
+        
+        user.setLobbyCode(lobbyCode);
+        userRepository.save(user);
+    }
 }

@@ -112,17 +112,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
                 boolean isValid = lobbyService.validateLobby(lobbyCode);
 
+                ObjectNode response = mapper.createObjectNode();
+                response.put("type", "validateLobbyResponse");
                 if (!isValid) {
-                    // Send success response with the lobby ID
-                    ObjectNode response = mapper.createObjectNode();
-                    response.put("type", "validateLobbyResponse");
                     response.put("valid", false);
-                
-                session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+                } else {
+                    response.put("valid", true);
+                    lobbyService.addLobbyCodeToUser(user, lobbyCode);
                 }
-                
-                //lobbyService.addLobbyCodeToUser(user, lobbyCode);
-
+                session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
 
             } catch (Exception e) {
                 logger.error("Error creating lobby", e);
