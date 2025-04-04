@@ -109,7 +109,7 @@ public class LobbyService {
             return false;
         }
     }
-    public void addLobbyCodeToUser(User user, int lobbyCode) {
+    public void addLobbyCodeToUser(User user, long lobbyCode) {
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null and lobby code must be positive");
         }

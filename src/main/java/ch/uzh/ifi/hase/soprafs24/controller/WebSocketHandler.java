@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
+import java.util.Set;
 
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
@@ -28,6 +29,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Autowired
     private UserService userService;
+
+    private final SessionRegistry sessionRegistry = new SessionRegistry();
 
     // Add this constructor
     public WebSocketHandler() {
@@ -50,6 +53,19 @@ public class WebSocketHandler extends TextWebSocketHandler {
         
         // Send as JSON string
         session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+    }
+
+    private void broadcastToLobby(Long lobbyCode, String updateMessage) throws IOException {
+        // Retrieve all sessions registered for the given lobby code
+        Set<WebSocketSession> sessions = sessionRegistry.getSessions(lobbyCode);
+        for (WebSocketSession sess : sessions) {
+            if (sess.isOpen()) {
+                ObjectNode response = mapper.createObjectNode();
+                response.put("type", "lobby_update");
+                response.put("message", updateMessage);
+                sess.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+            }
+        }
     }
     
     @Override
@@ -86,6 +102,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 
                 // Direct call to LobbyService's createLobby method
                 Lobby lobby = lobbyService.createLobby(user);
+                sessionRegistry.addSession(lobby.getId(), session);
                 
                 // Send success response with the lobby ID
                 ObjectNode response = mapper.createObjectNode();
@@ -103,7 +120,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
             try {
                 User user = userService.getUserByToken(token);
-                int lobbyCode = jsonNode.get("lobbyCode").asInt();
+                long lobbyCode = jsonNode.get("lobbyCode").asInt();
                 
                 if (user == null) {
                     sendErrorMessage(session, "Invalid token or user not found");
@@ -114,11 +131,18 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
                 ObjectNode response = mapper.createObjectNode();
                 response.put("type", "validateLobbyResponse");
-                if (!isValid) {
-                    response.put("valid", false);
-                } else {
-                    response.put("valid", true);
+                response.put("valid", isValid);
+                if (isValid) {
                     lobbyService.addLobbyCodeToUser(user, lobbyCode);
+
+                    sessionRegistry.addSession(lobbyCode, session);
+
+                    session.getAttributes().put("lobbyCode", lobbyCode);
+
+                    // Broadcast the user's name to all users in the lobby
+                    String userName = user.getUsername();
+                    int userlvl = user.getLevel();
+                    broadcastToLobby(lobbyCode, userName + "," + userlvl + " has joined the lobby.");
                 }
                 session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
 
@@ -144,6 +168,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         // This method is called when the WebSocket connection is closed
         logger.info("WebSocket connection closed: {} with status {}", session.getId(), status);
+
+        Object lobbyCodeObj = session.getAttributes().get("lobbyCode");
+
+        if (lobbyCodeObj instanceof Long) {
+            Long lobbyCode = (Long) lobbyCodeObj;
+            sessionRegistry.removeSession(lobbyCode, session);
+        }
     }
     
     @Override

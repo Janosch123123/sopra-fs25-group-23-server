@@ -51,7 +51,7 @@ public class User implements Serializable {
   private int level;
 
   @Column
-  private int lobbyCode;
+  private long lobbyCode;
 
 
   public int getLevel() {
@@ -123,7 +123,7 @@ public class User implements Serializable {
     this.creationDate = creationDate;
   }
 
-  public int getLobbyCode() {return lobbyCode;}
+  public long getLobbyCode() {return lobbyCode;}
 
-  public void setLobbyCode(int lobbyCode) {this.lobbyCode = lobbyCode;}
+  public void setLobbyCode(long lobbyCode) {this.lobbyCode = lobbyCode;}
 }
