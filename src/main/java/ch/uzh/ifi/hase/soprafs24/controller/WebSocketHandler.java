@@ -98,7 +98,40 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 logger.error("Error creating lobby", e);
                 sendErrorMessage(session, "Failed to create lobby: " + e.getMessage());
             }
-        } else {
+        } else if ("validateLobby".equals(type)) {
+            String token = getTokenFromSession(session);
+
+            try {
+                User user = userService.getUserByToken(token);
+                int lobbyCode = jsonNode.get("lobbyCode").asInt();
+                
+                if (user == null) {
+                    sendErrorMessage(session, "Invalid token or user not found");
+                    return;
+                }
+
+                boolean isValid = lobbyService.validateLobby(lobbyCode);
+
+                if (!isValid) {
+                    // Send success response with the lobby ID
+                    ObjectNode response = mapper.createObjectNode();
+                    response.put("type", "validateLobbyResponse");
+                    response.put("valid", false);
+                
+                session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+                }
+                
+                //lobbyService.addLobbyCodeToUser(user, lobbyCode);
+
+
+            } catch (Exception e) {
+                logger.error("Error creating lobby", e);
+                sendErrorMessage(session, "Failed to join lobby: " + e.getMessage());
+            }
+
+        }
+        
+        else {
             sendErrorMessage(session, "Unknown message type: " + type);
         }
         } catch (IOException e) {

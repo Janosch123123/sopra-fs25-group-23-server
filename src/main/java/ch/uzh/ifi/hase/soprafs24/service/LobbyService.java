@@ -93,4 +93,20 @@ public class LobbyService {
         return lobbyRepository.findById(lobbyId)
                 .orElseThrow(() -> new IllegalArgumentException("Lobby not found with ID: " + lobbyId));
     }
+
+    /**
+     * Validates if a lobby code exists
+     *
+     * @param lobbyCode the lobby code to validate
+     * @return true if valid, false otherwise
+     */
+    public boolean validateLobby(long lobbyCode) {
+        try {
+            getLobbyById(lobbyCode);
+            return true;
+        } catch (Exception e) {
+            log.error("Error validating lobby code: {}", e.getMessage());
+            return false;
+        }
+    }
 }
