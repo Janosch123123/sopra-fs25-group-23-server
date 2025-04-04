@@ -81,7 +81,7 @@ public class GameService {
 
     private void broadcastGameState(Game game) {
         ObjectNode message = mapper.createObjectNode();
-        message.put("type", "GAME_UPDATE");
+        message.put("type", "gameState");
         message.put("gameId", game.getGameId());
         message.set("snakes", mapper.valueToTree(game.getSnakes()));
         message.set("items", mapper.valueToTree(game.getItems()));
