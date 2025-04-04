@@ -15,8 +15,6 @@ public class SessionRegistry {
         lobbySessions.computeIfAbsent(lobbyId, key ->
             Collections.newSetFromMap(new ConcurrentHashMap<>())
         ).add(session);
-        System.out.println("Added session " + session.getId() + " to lobby " + lobbyId +
-        ". Current sessions in lobby: " + lobbySessions.get(lobbyId).size());
     }
 
     public void removeSession(Long lobbyId, WebSocketSession session) {
@@ -27,8 +25,6 @@ public class SessionRegistry {
                 lobbySessions.remove(lobbyId);
             }
         }
-        System.out.println("REmoved session " + session.getId() + " to lobby " + lobbyId +
-        ". Current sessions in lobby: " + lobbySessions.get(lobbyId).size());
     }
 
     public Set<WebSocketSession> getSessions(Long lobbyId) {

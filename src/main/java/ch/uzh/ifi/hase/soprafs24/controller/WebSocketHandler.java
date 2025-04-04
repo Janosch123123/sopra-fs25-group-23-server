@@ -108,6 +108,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 ObjectNode response = mapper.createObjectNode();
                 response.put("type", "lobby_created");
                 response.put("lobbyId", lobby.getId());
+
+                // Broadcast the user's name to all users in the lobby, in this case it should only be the admin.
+                 String userName = user.getUsername();
+                 int userlvl = user.getLevel();
+                 broadcastToLobby(lobby.getId(), userName + "," + userlvl + " has joined the lobby.");
                 
                 session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
                 logger.info("Created lobby for session: {}", session.getId());
