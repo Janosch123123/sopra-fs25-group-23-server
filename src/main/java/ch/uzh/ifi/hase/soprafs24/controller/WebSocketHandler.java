@@ -211,13 +211,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
                     // Spielzustand an alle Clients senden
                     ObjectNode startMessage = mapper.createObjectNode();
-                    startMessage.put("type", "GAME_STARTED");
+                    startMessage.put("type", "gameStarted");
                     startMessage.put("gameId", game.getGameId());
 
                     lobby.getParticipantIds().forEach(id -> {
-                        WebSocketSession IndividualSession = getSessionByUserId(user.getId());
+                        WebSocketSession individualSession = getSessionByUserId(user.getId());
                         try {
-                            session.sendMessage(new TextMessage(startMessage.toString()));
+                            individualSession.sendMessage(new TextMessage(startMessage.toString()));
                         } catch (IOException e) {
                             logger.error("Error sending start message to user {}", user.getId(), e);
                         }
