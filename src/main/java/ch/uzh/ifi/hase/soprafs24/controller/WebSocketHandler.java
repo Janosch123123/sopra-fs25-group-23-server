@@ -12,12 +12,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.List;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.util.ArrayList;
 
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
 import ch.uzh.ifi.hase.soprafs24.service.LobbyService;
 import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+
 
 public class WebSocketHandler extends TextWebSocketHandler {
     
@@ -116,6 +121,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 
                 session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
                 logger.info("Created lobby for session: {}", session.getId());
+
+                sendLobbyStateToUsers(lobby.getId(), lobby);
+
             } catch (Exception e) {
                 logger.error("Error creating lobby", e);
                 sendErrorMessage(session, "Failed to create lobby: " + e.getMessage());
@@ -214,5 +222,48 @@ public class WebSocketHandler extends TextWebSocketHandler {
         response.put("message", errorMessage);
         session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
         logger.warn("Sent error to client: {}", errorMessage);
+    }
+
+    /**
+     * Send the current state of the lobby to all users in the lobby
+     * @param lobbyCode the lobby code
+     * @param lobby the lobby object
+     * @throws IOException if an error occurs while sending the message
+     */
+    private void sendLobbyStateToUsers(Long lobbyCode, Lobby lobby) throws IOException {
+
+        logger.info("Sending lobby state to users in lobby {}: {}", lobbyCode, lobby);
+
+        Set<WebSocketSession> sessions = sessionRegistry.getSessions(lobbyCode);
+        for (WebSocketSession sess : sessions) {
+            if (sess.isOpen()) {
+                ObjectNode response = mapper.createObjectNode();
+                response.put("type", "lobby_state");
+                response.put("lobbyId", lobby.getId());
+                response.put("adminId", lobby.getAdminId());
+
+                // Create an empty list to hold the users
+                List<User> participants = new ArrayList<>();
+
+                // Loop through participant IDs and fetch each user
+                for (Long userId : lobby.getParticipantIds()) {
+                    User user = userService.getUserById(userId);
+                    if (user != null) {
+                        participants.add(user);
+                    }
+                }
+                ArrayNode participantsArray = mapper.createArrayNode();
+                for (User participant : participants) {
+                    ObjectNode participantNode = mapper.createObjectNode();
+                    participantNode.put("id", participant.getId());
+                    participantNode.put("username", participant.getUsername()); 
+                    participantNode.put("level", participant.getLevel());
+                    participantsArray.add(participantNode);
+                }
+                response.set("participants", participantsArray);
+                // Add other lobby details as needed
+                sess.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+            }
+        }
     }
 }
