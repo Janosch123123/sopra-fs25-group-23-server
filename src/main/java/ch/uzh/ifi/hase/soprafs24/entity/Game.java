@@ -50,6 +50,6 @@ public class Game {
                 alives++;
             }
         }
-        return alives >= 2;
+        return alives <= 1; // Game is over when 0 or 1 players remain
     }
 }

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.TextMessage;
@@ -26,16 +27,24 @@ public class GameService {
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
     private final UserService userService;
-    private final ObjectMapper mapper = new ObjectMapper(); // ObjectMapper instanziiert
-    private static final Logger logger = LoggerFactory.getLogger(GameService.class); // Logger initialisiert
-    private final WebSocketHandler webSocketHandler;
+    private final ObjectMapper mapper = new ObjectMapper();
+    private static final Logger logger = LoggerFactory.getLogger(GameService.class);
+    
+    // Replace direct WebSocketHandler dependency with ApplicationContext
+    private final ApplicationContext applicationContext;
 
     @Autowired
-    public GameService(LobbyRepository lobbyRepository, UserRepository userRepository, UserService userService, WebSocketHandler webSocketHandler) {
+    public GameService(LobbyRepository lobbyRepository, UserRepository userRepository, 
+                      UserService userService, ApplicationContext applicationContext) {
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
         this.userService = userService;
-        this.webSocketHandler = webSocketHandler;
+        this.applicationContext = applicationContext;
+    }
+    
+    // Add a method to get WebSocketHandler lazily when needed
+    private WebSocketHandler getWebSocketHandler() {
+        return applicationContext.getBean(WebSocketHandler.class);
     }
 
     public Game createGame(Lobby lobby) {
@@ -90,16 +99,20 @@ public class GameService {
         message.set("snakes", mapper.valueToTree(game.getSnakes()));
         message.set("items", mapper.valueToTree(game.getItems()));
 
+        // Get WebSocketHandler lazily only when needed
+        WebSocketHandler webSocketHandler = getWebSocketHandler();
+        
         for (Long playerId : game.getLobby().getParticipantIds()) {
             WebSocketSession session = webSocketHandler.getSessionByUserId(playerId);
             try {
-                session.sendMessage(new TextMessage(message.toString()));
+                if (session != null && session.isOpen()) {
+                    session.sendMessage(new TextMessage(message.toString()));
+                }
             } catch (IOException e) {
                 logger.error("Error sending game update to user {}", playerId, e);
             }
         }
     }
-
 
     private void endGame(Game game) {
         // was soll da passieren?
