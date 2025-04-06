@@ -205,8 +205,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     Lobby lobby = jsonNode.has("lobbyId") ? lobbyService.getLobbyById(jsonNode.get("lobbyId").asLong()) : null;
                     if (lobby == null) {
                         sendErrorMessage(session, "Invalid lobby ID");
-                        return;}
-                    Game game = GameService.createGame(lobby);
+                        return;
+                    }
+                    
+                    // Changed from static to instance method call
+                    Game game = gameService.createGame(lobby);
                     lobby.setGameId(game.getGameId());
                     gameService.start(game);
 
@@ -216,22 +219,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     startMessage.put("gameId", game.getGameId());
 
                     lobby.getParticipantIds().forEach(id -> {
-                        WebSocketSession individualSession = getSessionByUserId(user.getId());
+                        WebSocketSession individualSession = getSessionByUserId(id); // Fixed: use id instead of user.getId()
                         try {
-                            individualSession.sendMessage(new TextMessage(startMessage.toString()));
+                            if (individualSession != null && individualSession.isOpen()) {
+                                individualSession.sendMessage(new TextMessage(mapper.writeValueAsString(startMessage)));
+                            }
                         } catch (IOException e) {
-                            logger.error("Error sending start message to user {}", user.getId(), e);
+                            logger.error("Error sending start message to user {}", id, e);
                         }
                     });
-
-
-//                // Send success response with the lobby ID
-//                ObjectNode response = mapper.createObjectNode();
-//                response.put("type", "lobby_created");
-//                response.put("lobbyId", lobby.getId());
-//
-//                session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
-//                logger.info("Created lobby for session: {}", session.getId());
                 }
                 catch (Exception e) {
                     logger.error("Error starting game", e);
