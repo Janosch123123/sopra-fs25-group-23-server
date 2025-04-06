@@ -20,6 +20,8 @@ import java.util.Set;
 import java.util.List;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
@@ -107,11 +109,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
         // Log received message
         System.out.println("handleTextMessage called with message: " + message.getPayload());
         logger.info("Received message from {}: {}", session.getId(), message.getPayload());
-        
+
         try {
             // Parse the JSON message
             JsonNode jsonNode = mapper.readTree(message.getPayload());
-            
+
             // Extract the message type
             String type = jsonNode.has("type") ? jsonNode.get("type").asText() : null;
             long lobbyCode = jsonNode.has("lobbyCode") ? jsonNode.get("lobbyCode").asInt() : -1;
@@ -125,7 +127,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
             if ("create_lobby".equals(type)) {
                 // Extract token from session
                 String token = getTokenFromSession(session);
-
                 try {
                     // Get user from token
                     User user = userService.getUserByToken(token);
@@ -168,7 +169,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     ObjectNode response = mapper.createObjectNode();
                     response.put("type", "validateLobbyResponse");
                     response.put("valid", isValid);
-                if (isValid) {
+                    if (isValid) {
                         lobbyService.addLobbyCodeToUser(user, lobbyCode);
 
                     sessionRegistry.addSession(lobbyCode, session);
