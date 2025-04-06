@@ -23,20 +23,13 @@ import java.util.Random;
 @Transactional
 public class GameService {
 
-    private final LobbyRepository lobbyRepository;
-    private final UserRepository userRepository;
-    private final UserService userService;
+
     private final ObjectMapper mapper = new ObjectMapper(); // ObjectMapper instanziiert
     private static final Logger logger = LoggerFactory.getLogger(GameService.class); // Logger initialisiert
-    private final WebSocketHandler webSocketHandler;
 
-    @Autowired
-    public GameService(LobbyRepository lobbyRepository, UserRepository userRepository, UserService userService, WebSocketHandler webSocketHandler) {
-        this.lobbyRepository = lobbyRepository;
-        this.userRepository = userRepository;
-        this.userService = userService;
-        this.webSocketHandler = webSocketHandler;
-    }
+//    @Autowired
+//    public GameService() {
+//    }
 
     public static Game createGame(Lobby lobby) {
         Game game = new Game();
@@ -87,7 +80,7 @@ public class GameService {
         message.set("items", mapper.valueToTree(game.getItems()));
 
         for (Long playerId : game.getLobby().getParticipantIds()) {
-            WebSocketSession session = webSocketHandler.getSessionByUserId(playerId);
+            WebSocketSession session = WebSocketHandler.getSessionByUserId(playerId);
             try {
                 session.sendMessage(new TextMessage(message.toString()));
             } catch (IOException e) {

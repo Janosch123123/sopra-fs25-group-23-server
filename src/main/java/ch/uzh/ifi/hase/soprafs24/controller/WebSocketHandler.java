@@ -35,7 +35,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     
     private static final Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
     private final ObjectMapper mapper = new ObjectMapper();
-    private final Map<Long, WebSocketSession> userSessions = new ConcurrentHashMap<>();
+    private static final Map<Long, WebSocketSession> userSessions = new ConcurrentHashMap<>();
 
 
     @Autowired
@@ -57,7 +57,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         System.out.println("WebSocketHandler constructor called!");
     }
 
-    public WebSocketSession getSessionByUserId(Long userId) {
+    public static WebSocketSession getSessionByUserId(Long userId) {
         return userSessions.get(userId);
     }
 
