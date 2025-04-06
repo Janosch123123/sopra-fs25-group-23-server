@@ -38,10 +38,15 @@ public class GameService {
         this.webSocketHandler = webSocketHandler;
     }
 
-    public static Game createGame(Lobby lobby) {
+    public Game createGame(Lobby lobby) {
+        // Ensure we are working with a managed entity within the current transaction
+        Lobby managedLobby = lobbyRepository.findById(lobby.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Lobby not found with ID: " + lobby.getId()));
+        
         Game game = new Game();
-        game.setLobby(lobby);
-        List<Long> playersId = lobby.getParticipantIds();
+        game.setLobby(managedLobby);
+        
+        List<Long> playersId = managedLobby.getParticipantIds();
         for (Long playerId : playersId) {
             Snake snake = new Snake();
             snake.setUserId(playerId);
@@ -52,15 +57,14 @@ public class GameService {
             snake.setTail(new int[]{2, 1});
             game.addSnake(snake);
         }
+        
         Item item1 = new Item(new int[]{12, 12}, "cookie");
         Item item2 = new Item(new int[]{8, 13}, "cookie");
         Item item3 = new Item(new int[]{2, 17}, "cookie");
         game.setItems(List.of(item1, item2, item3));
 
         return game;
-
     }
-
 
     public void start(Game game) {
         new Thread(() -> { // Startet die Game-Loop in einem eigenen Thread

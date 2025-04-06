@@ -27,7 +27,7 @@ public class Lobby implements Serializable {
     private Long gameId;
     
     // Change from a list of User objects to a list of user IDs
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER) // Added EAGER fetch type
     @CollectionTable(name = "lobby_participants", joinColumns = @JoinColumn(name = "lobby_id"))
     @Column(name = "participant_id")
     private List<Long> participantIds = new ArrayList<>();
