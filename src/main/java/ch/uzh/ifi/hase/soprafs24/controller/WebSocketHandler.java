@@ -114,7 +114,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             
             // Extract the message type
             String type = jsonNode.has("type") ? jsonNode.get("type").asText() : null;
-            int lobbyCode = jsonNode.has("lobbyCode") ? jsonNode.get("lobbyCode").asInt() : -1;
+            long lobbyCode = jsonNode.has("lobbyCode") ? jsonNode.get("lobbyCode").asInt() : -1;
 
             if (type == null) {
                 sendErrorMessage(session, "Missing message type");
@@ -257,8 +257,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
 Object lobbyCodeObj = session.getAttributes().get("lobbyCode");
 
-        if (lobbyCodeObj instanceof Long) {
-            Long lobbyCode = (Long) lobbyCodeObj;
+        if (lobbyCodeObj instanceof Long lobbyCode) {
             sessionRegistry.removeSession(lobbyCode, session);
         }
     }
