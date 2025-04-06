@@ -16,10 +16,10 @@ public class Game {
     private boolean gameOver;
 
     public Game() {
-//        assert lobby != null : "Lobby must not be null";
         this.gameId = generateUniqueGameId();
-//        this.lobby = lobby;
-//        this.snakes = new ArrayList<>();
+        this.snakes = new ArrayList<>(); // Initialize the snakes list
+        this.items = new ArrayList<>();  // Initialize the items list
+        this.gameOver = false;           // Initialize gameOver flag
     }
     private static synchronized long generateUniqueGameId() {
         idCounter++; // Zähler wird inkrementiert
@@ -50,6 +50,6 @@ public class Game {
                 alives++;
             }
         }
-        return alives >= 2;
+        return alives <= 1; // Game is over when 0 or 1 players remain
     }
 }

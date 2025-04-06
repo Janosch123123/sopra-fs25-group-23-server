@@ -1,15 +1,32 @@
 package ch.uzh.ifi.hase.soprafs24.entity;
 
 public class Item {
-    private int[] Position;
+    private int[] position;
     private String type;
-
-
-
+    
+    public Item() {
+        // Default constructor needed for some frameworks
+    }
+    
     public Item(int[] position, String type) {
-        Position = position;
+        this.position = position;
         this.type = type;
     }
-    public int[] getPosition() {return Position;}
-    public String getType() {return type;}
+    
+    // Getters and setters
+    public int[] getPosition() {
+        return position;
+    }
+    
+    public void setPosition(int[] position) {
+        this.position = position;
+    }
+    
+    public String getType() {
+        return type;
+    }
+    
+    public void setType(String type) {
+        this.type = type;
+    }
 }
