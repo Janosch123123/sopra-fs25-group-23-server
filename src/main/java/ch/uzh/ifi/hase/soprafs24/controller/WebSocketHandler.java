@@ -28,10 +28,10 @@ import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
 import ch.uzh.ifi.hase.soprafs24.service.LobbyService;
 import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component
-public class WebSocketHandler extends TextWebSocketHandler implements WebSocketSender {
+
+
+public class WebSocketHandler extends TextWebSocketHandler {
     
     private static final Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
     private final ObjectMapper mapper = new ObjectMapper();
@@ -57,22 +57,11 @@ public class WebSocketHandler extends TextWebSocketHandler implements WebSocketS
         System.out.println("WebSocketHandler constructor called!");
     }
 
-    @Override
-    public void sendToUser(Long userId, TextMessage message) throws IOException {
-        WebSocketSession session = userSessions.get(userId);
-        if (session != null && session.isOpen()) {
-            session.sendMessage(message);
-        } else {
-            logger.warn("Failed to send message to user {}: No active session", userId);
-        }
-    }
-
-    @Override
     public WebSocketSession getSessionByUserId(Long userId) {
         return userSessions.get(userId);
     }
 
-    @Override
+        @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         // This method is called when a new WebSocket connection is established
         try {
@@ -219,21 +208,22 @@ public class WebSocketHandler extends TextWebSocketHandler implements WebSocketS
                         return;
                     }
                     
+                    // Changed from static to instance method call
                     Game game = gameService.createGame(lobby);
                     lobby.setGameId(game.getGameId());
-                    
-                    // Start the game and pass this WebSocketHandler as the WebSocketSender
                     gameService.start(game);
 
                     // Spielzustand an alle Clients senden
                     ObjectNode startMessage = mapper.createObjectNode();
                     startMessage.put("type", "gameStarted");
                     startMessage.put("gameId", game.getGameId());
-                    
-                    TextMessage textMessage = new TextMessage(mapper.writeValueAsString(startMessage));
+
                     lobby.getParticipantIds().forEach(id -> {
+                        WebSocketSession individualSession = getSessionByUserId(id); // Fixed: use id instead of user.getId()
                         try {
-                            sendToUser(id, textMessage);
+                            if (individualSession != null && individualSession.isOpen()) {
+                                individualSession.sendMessage(new TextMessage(mapper.writeValueAsString(startMessage)));
+                            }
                         } catch (IOException e) {
                             logger.error("Error sending start message to user {}", id, e);
                         }
