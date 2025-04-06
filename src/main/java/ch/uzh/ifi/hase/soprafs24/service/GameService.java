@@ -19,6 +19,7 @@ import org.springframework.web.socket.WebSocketSession;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
+import java.util.ArrayList;
 
 @Service
 @Transactional
@@ -56,7 +57,11 @@ public class GameService {
         game.setLobby(managedLobby);
         
         List<Long> playersId = managedLobby.getParticipantIds();
+        
+        // Log player IDs to debug
+        logger.info("Creating game with {} players", playersId.size());
         for (Long playerId : playersId) {
+            logger.info("Adding snake for player: {}", playerId);
             Snake snake = new Snake();
             snake.setUserId(playerId);
             snake.setDirection("DOWN");
@@ -67,10 +72,11 @@ public class GameService {
             game.addSnake(snake);
         }
         
-        Item item1 = new Item(new int[]{12, 12}, "cookie");
-        Item item2 = new Item(new int[]{8, 13}, "cookie");
-        Item item3 = new Item(new int[]{2, 17}, "cookie");
-        game.setItems(List.of(item1, item2, item3));
+        List<Item> gameItems = new ArrayList<>();
+        gameItems.add(new Item(new int[]{12, 12}, "cookie"));
+        gameItems.add(new Item(new int[]{8, 13}, "cookie"));
+        gameItems.add(new Item(new int[]{2, 17}, "cookie"));
+        game.setItems(gameItems);
 
         return game;
     }
