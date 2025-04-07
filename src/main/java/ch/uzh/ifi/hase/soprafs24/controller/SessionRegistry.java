@@ -15,6 +15,9 @@ public class SessionRegistry {
         lobbySessions.computeIfAbsent(lobbyId, key ->
             Collections.newSetFromMap(new ConcurrentHashMap<>())
         ).add(session);
+
+        // Debug: Print the state of the lobbySessions map after adding a session
+        System.out.println("Session added. Current lobbySessions state: " + lobbySessions);
     }
 
     public void removeSession(Long lobbyId, WebSocketSession session) {
@@ -25,6 +28,9 @@ public class SessionRegistry {
                 lobbySessions.remove(lobbyId);
             }
         }
+
+        // Debug: Print the state of the lobbySessions map after removing a session
+        System.out.println("Session removed. Current lobbySessions state: " + lobbySessions);
     }
 
     public Set<WebSocketSession> getSessions(Long lobbyId) {

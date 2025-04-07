@@ -95,18 +95,25 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     }
 
-    private void broadcastToLobby(Long lobbyCode, String updateMessage) throws IOException {
-        // Retrieve all sessions registered for the given lobby code
-        Set<WebSocketSession> sessions = sessionRegistry.getSessions(lobbyCode);
-        for (WebSocketSession sess : sessions) {
-            System.out.println("Broadcasting to session: " + sess.getId());
-            if (sess.isOpen()) {
-                ObjectNode response = mapper.createObjectNode();
-                response.put("type", "lobby_update");
-                response.put("message", updateMessage);
-                sess.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
-            }
+    private void broadcastToLobby(long lobbyCode, ObjectNode updateMessage) throws IOException {
+        // Retrieve the lobby by its code
+        Lobby lobby = lobbyService.getLobbyById(lobbyCode);
+        if (lobby == null) {
+            System.out.println("Lobby not found for code: " + lobbyCode);
+            return;
         }
+
+        // Iterate over participant IDs and send messages to their sessions
+        lobby.getParticipantIds().forEach(id -> {
+            WebSocketSession individualSession = getSessionByUserId(id);
+            try {
+                if (individualSession != null && individualSession.isOpen()) {
+                    individualSession.sendMessage(new TextMessage(mapper.writeValueAsString(updateMessage)));
+                }
+            } catch (IOException e) {
+                logger.error("Error sending message to user {}", id, e);
+            }
+        });
     }
 
     @Override
@@ -121,7 +128,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
             // Extract the message type
             String type = jsonNode.has("type") ? jsonNode.get("type").asText() : null;
-            long lobbyCode = jsonNode.has("lobbyCode") ? jsonNode.get("lobbyCode").asInt() : -1;
+            // long lobbyCode = jsonNode.has("lobbyCode") ? jsonNode.get("lobbyCode").asInt() : -1;   WE DO NOT EXPECT  IT ALL THE TIME; ONLY WHEN JOINING
 
             if (type == null) {
                 sendErrorMessage(session, "Missing message type");
@@ -143,8 +150,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
                     // Direct call to LobbyService's createLobby method
                     Lobby lobby = lobbyService.createLobby(user);
+                    long lobbyCode = lobby.getId();
                     lobbyService.addLobbyCodeToUser(user, lobby.getId());
-
+                    sessionRegistry.addSession(lobbyCode, session);
                     // Send success response with the lobby ID
                     ObjectNode response = mapper.createObjectNode();
                     response.put("type", "lobby_created");
@@ -163,8 +171,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
                 try {
                     User user = userService.getUserByToken(token);
-//                int lobbyCode = jsonNode.get("lobbyCode").asInt(); Marc defined this variable above (new)
-//
+                    long lobbyCode = jsonNode.get("lobbyCode").asInt(); //Marc defined this variable above (new)
+
                     if (user == null) {
                         sendErrorMessage(session, "Invalid token or user not found");
                         return;
@@ -188,7 +196,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     // Broadcast the user's name to all users in the lobby
                         String userName = user.getUsername();
                         int userlvl = user.getLevel();
-                    broadcastToLobby(lobbyCode, userName + "," + userlvl + " has joined the lobby.");
+                    // broadcastToLobby(lobbyCode, );
                     }
                     session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
 
@@ -211,7 +219,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
                         sendErrorMessage(session, "Invalid token or Admin not found");
                         return;
                     }
+
+                    long lobbyCode = user.getLobbyCode();
                     // Direct call to GameService's createGame method
+                    //Get lobby by user
+                    
                     Lobby lobby = jsonNode.has("lobbyId") ? lobbyService.getLobbyById(jsonNode.get("lobbyId").asLong()) : null;
                     if (lobby == null) {
                         sendErrorMessage(session, "Invalid lobby ID");
@@ -229,24 +241,26 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     startMessage.put("type", "gameStarted");
                     startMessage.put("gameId", game.getGameId());
 
-                    lobby.getParticipantIds().forEach(id -> {
-                        WebSocketSession individualSession = getSessionByUserId(id); // Fixed: use id instead of user.getId()
-                        try {
-                            if (individualSession != null && individualSession.isOpen()) {
-                                individualSession.sendMessage(new TextMessage(mapper.writeValueAsString(startMessage)));
-                            }
-                        } catch (IOException e) {
-                            logger.error("Error sending start message to user {}", id, e);
-                        }
-                    });
+                    broadcastToLobby(lobbyCode, startMessage);
+
+                    // lobby.getParticipantIds().forEach(id -> {
+                    //     WebSocketSession individualSession = getSessionByUserId(id); // Fixed: use id instead of user.getId()
+                    //     try {
+                    //         if (individualSession != null && individualSession.isOpen()) {
+                    //             individualSession.sendMessage(new TextMessage(mapper.writeValueAsString(startMessage)));
+                    //         }
+                    //     } catch (IOException e) {
+                    //         logger.error("Error sending start message to user {}", id, e);
+                    //     }
+                    // });
                 }
                 catch (Exception e) {
                     logger.error("Error starting game", e);
                     sendErrorMessage(session, "Failed to start game: " + e.getMessage());
                 }
-                }
+            }
         
-        else{
+            else{
                     sendErrorMessage(session, "Unknown message type: " + type);
                 }
             } catch(IOException e){
@@ -263,7 +277,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             // This method is called when the WebSocket connection is closed
             logger.info("WebSocket connection closed: {} with status {}", session.getId(), status);
 
-Object lobbyCodeObj = session.getAttributes().get("lobbyCode");
+            Object lobbyCodeObj = session.getAttributes().get("lobbyCode");
 
         if (lobbyCodeObj instanceof Long lobbyCode) {
             sessionRegistry.removeSession(lobbyCode, session);
