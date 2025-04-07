@@ -53,7 +53,7 @@ public class LobbyService {
         
         // Add admin as first participant
         savedLobby.addParticipant(admin);
-        userRepository.save(admin);
+        lobbyRepository.save(savedLobby);
         
         log.info("Created new lobby with ID: {} and admin: {}", savedLobby.getId(), admin.getUsername());
         

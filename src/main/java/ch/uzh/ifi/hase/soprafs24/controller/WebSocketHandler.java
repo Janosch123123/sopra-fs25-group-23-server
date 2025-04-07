@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs24.controller;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Game;
+import ch.uzh.ifi.hase.soprafs24.repository.LobbyRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs24.service.GameService;
 import org.slf4j.Logger;
@@ -35,7 +36,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     
     private static final Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
     private final ObjectMapper mapper = new ObjectMapper();
-    private final Map<Long, WebSocketSession> userSessions = new ConcurrentHashMap<>();
+    private static final Map<Long, WebSocketSession> userSessions = new ConcurrentHashMap<>();
 
 
     @Autowired
@@ -50,6 +51,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private LobbyRepository lobbyRepository;
+
     private final SessionRegistry sessionRegistry = new SessionRegistry();
 
     // Add this constructor
@@ -57,7 +61,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         System.out.println("WebSocketHandler constructor called!");
     }
 
-    public WebSocketSession getSessionByUserId(Long userId) {
+    public static WebSocketSession getSessionByUserId(Long userId) {
         return userSessions.get(userId);
     }
 
@@ -139,6 +143,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
                     // Direct call to LobbyService's createLobby method
                     Lobby lobby = lobbyService.createLobby(user);
+                    lobbyService.addLobbyCodeToUser(user, lobby.getId());
 
                     // Send success response with the lobby ID
                     ObjectNode response = mapper.createObjectNode();
@@ -172,6 +177,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     response.put("valid", isValid);
                     if (isValid) {
                         lobbyService.addLobbyCodeToUser(user, lobbyCode);
+
+                        Lobby lobby = lobbyService.getLobbyById(lobbyCode);
+                        lobby.addParticipant(user);
+                        lobbyRepository.save(lobby);
 
                     sessionRegistry.addSession(lobbyCode, session);
 
@@ -212,6 +221,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     // Changed from static to instance method call
                     Game game = gameService.createGame(lobby);
                     lobby.setGameId(game.getGameId());
+                    lobbyRepository.save(lobby);
                     gameService.start(game);
 
                     // Spielzustand an alle Clients senden
