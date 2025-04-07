@@ -95,6 +95,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         // Retrieve all sessions registered for the given lobby code
         Set<WebSocketSession> sessions = sessionRegistry.getSessions(lobbyCode);
         for (WebSocketSession sess : sessions) {
+            System.out.println("Broadcasting to session: " + sess.getId());
             if (sess.isOpen()) {
                 ObjectNode response = mapper.createObjectNode();
                 response.put("type", "lobby_update");
