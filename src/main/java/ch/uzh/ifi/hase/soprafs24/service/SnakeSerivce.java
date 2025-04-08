@@ -37,6 +37,10 @@ public class SnakeSerivce {
     }
 
     public boolean checkCollision(Snake snake, Game game) {
+        if (snake.getCoordinates().length == 0) {
+            return false;
+        }
+        
         int[] head = snake.getCoordinates()[0];
         //check for collision with walls
         if (head[0] < 0 || head[0] >= 30 || head[1] < 0 || head[1] >= 25) {
@@ -44,7 +48,13 @@ public class SnakeSerivce {
         }
         // check collision with other snakes
         for (Snake otherSnake : game.getSnakes()) {
+            //other snake is already dead
+            if (otherSnake.getCoordinates().length == 0) {
+                continue;
+            }
+            // check if the snake is colliding with itself or someone else
             for (int i = 0; i < snake.getLength(); i++) {
+                // dont check your own head with your own head
                 if (snake == otherSnake && i == 0) {
                     continue;
                 }
