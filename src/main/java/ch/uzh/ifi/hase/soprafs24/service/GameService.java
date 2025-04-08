@@ -19,6 +19,8 @@ import org.springframework.web.socket.WebSocketSession;
 import java.io.IOException;
 import java.util.*;
 
+import static ch.uzh.ifi.hase.soprafs24.service.LobbyService.putGameToLobby;
+
 @Service
 @Transactional
 public class GameService {
@@ -55,6 +57,7 @@ public class GameService {
         
         Game game = new Game();
         game.setLobby(managedLobby);
+        putGameToLobby(game, managedLobby);
         
         List<Long> playersId = managedLobby.getParticipantIds();
         
@@ -134,9 +137,6 @@ public class GameService {
         logger.info("Broadcasting game state for game: {}", game.getGameId());
         ObjectNode message = mapper.createObjectNode();
         message.put("type", "gameState");
-//        message.put("gameId", game.getGameId());
-//        message.set("snakes", mapper.valueToTree(game.getSnakes()));
-        message.set("items", mapper.valueToTree(game.getItems()));
         message.put("timestamp", Math.round(game.getTimestamp()));
         // Map mit Username als Key und Snake-Informationen als Value erstellen
         Map<String, Object> snakesDictionary = new HashMap<>();
@@ -144,9 +144,17 @@ public class GameService {
             String username = snake.getUsername(); // Benutzername als Key
             snakesDictionary.put(username, snake.getCoordinates());
         }
-
         // Füge die strukturierte Map dem JSON-Objekt hinzu
         message.set("snakes", mapper.valueToTree(snakesDictionary));
+// Extrahiere die Cookies aus der Items-Liste (alle Items mit type "cookie")
+        List<int[]> cookiePositions = new ArrayList<>();
+        for (Item item : game.getItems()) {
+            if ("cookie".equals(item.getType())) { // Prüfen, ob Item-Typ "cookie" ist
+                cookiePositions.add(item.getPosition()); // Position hinzufügen
+            }
+        }
+        // Füge die Cookie-Positionen zu den JSON-Daten hinzu
+        message.set("cookies", mapper.valueToTree(cookiePositions));
 
 
         // Get WebSocketHandler lazily only when needed
