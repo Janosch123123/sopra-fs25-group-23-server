@@ -228,6 +228,14 @@ public class GameService {
         Item item = new Item(new int[]{x, y}, "cookie");
         game.addItem(item);
     }
+
+    public void respondToKeyInputs(Game game, Long userId, String direction) {
+        for (Snake snake : game.getSnakes()) {
+            if (snake.getUserId().equals(userId)) {
+                snake.setDirection(direction);
+            }
+        }
+    }
 }
 
 
