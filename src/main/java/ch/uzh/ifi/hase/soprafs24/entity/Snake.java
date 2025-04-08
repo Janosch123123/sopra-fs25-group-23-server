@@ -12,7 +12,8 @@ public class Snake {
         for (Snake otherSnake : game.getSnakes()) {
             if (snake != otherSnake) {
                 for (int i = 0; i < snake.getLength(); i++) {
-                    if (snake.getCoordinates()[i][0] == otherSnake.getCoordinates()[i][0] && snake.getCoordinates()[i][1] == otherSnake.getCoordinates()[i][1]) {
+                    if (snake.getCoordinates()[i][0] == otherSnake.getCoordinates()[i][0]
+                            && snake.getCoordinates()[i][1] == otherSnake.getCoordinates()[i][1]) {
                         return true;
                     }
 
@@ -22,40 +23,50 @@ public class Snake {
         return false;
     }
 
-
     public int getLength() {
         return length;
     }
+
     public void setLength(int length) {
         this.length = length;
     }
+
     public int[][] getCoordinates() {
         return coordinates;
     }
+
     public void setCoordinates(int[][] coordinates) {
         this.coordinates = coordinates;
     }
+
     public String getDirection() {
         return direction;
     }
+
     public void setDirection(String direction) {
         this.direction = direction;
     }
+
     public int[] getHead() {
         return head;
     }
+
     public void setHead(int[] head) {
         this.head = head;
     }
+
     public int[] getTail() {
         return tail;
     }
+
     public void setTail(int[] tail) {
         this.tail = tail;
     }
+
     public Long getUserId() {
         return userId;
     }
+
     public void setUserId(Long userId) {
         this.userId = userId;
     }

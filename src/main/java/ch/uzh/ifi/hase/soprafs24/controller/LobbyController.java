@@ -2,7 +2,6 @@ package ch.uzh.ifi.hase.soprafs24.controller;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
 import ch.uzh.ifi.hase.soprafs24.repository.LobbyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +12,6 @@ public class LobbyController {
 
     private final LobbyRepository lobbyRepository;
 
-    @Autowired
     public LobbyController(LobbyRepository lobbyRepository) {
         this.lobbyRepository = lobbyRepository;
     }

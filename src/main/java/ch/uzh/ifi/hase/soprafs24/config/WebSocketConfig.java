@@ -1,11 +1,12 @@
 package ch.uzh.ifi.hase.soprafs24.config;
 
-import ch.uzh.ifi.hase.soprafs24.controller.WebSocketHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+
+import ch.uzh.ifi.hase.soprafs24.handler.WebSocketHandler;
 
 @Configuration
 @EnableWebSocket
