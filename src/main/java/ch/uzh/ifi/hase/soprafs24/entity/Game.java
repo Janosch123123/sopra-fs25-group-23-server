@@ -80,6 +80,6 @@ public class Game {
                 alives++;
             }
         }
-        return true; // Game is over when 0 or 1 players remain
+        return false; // Game is over when 0 or 1 players remain
     }
 }
