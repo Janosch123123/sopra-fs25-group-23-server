@@ -177,7 +177,16 @@ public class GameService {
                 continue; // already dead
             }
             snakeService.moveSnake(snake);
+
+            if (snakeService.checkCollision(snake, game)) {
+                // Snake has collided with another snake
+                logger.info("Collision detected for snake: {}", snake.getUserId());
+                
+                continue;
+            }
         }
+
+
 
         // Spawne ggf. neue Items (mit 25% Chance)
         Random random = new Random();

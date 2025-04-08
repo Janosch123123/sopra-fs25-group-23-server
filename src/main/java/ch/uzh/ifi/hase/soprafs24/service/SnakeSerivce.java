@@ -36,15 +36,21 @@ public class SnakeSerivce {
         System.out.println("Snake moved to: " + newHead[0] + ", " + newHead[1]);
     }
 
-    public static boolean checkCollision(Snake snake, Game game) {
+    public boolean checkCollision(Snake snake, Game game) {
+        int[] head = snake.getCoordinates()[0];
+        //check for collision with walls
+        if (head[0] < 0 || head[0] >= 30 || head[1] < 0 || head[1] >= 25) {
+            return true;
+        }
+        // check collision with other snakes
         for (Snake otherSnake : game.getSnakes()) {
-            if (snake != otherSnake) {
-                for (int i = 0; i < snake.getLength(); i++) {
-                    if (snake.getCoordinates()[i][0] == otherSnake.getCoordinates()[i][0]
-                            && snake.getCoordinates()[i][1] == otherSnake.getCoordinates()[i][1]) {
-                        return true;
-                    }
-
+            for (int i = 0; i < snake.getLength(); i++) {
+                if (snake == otherSnake && i == 0) {
+                    continue;
+                }
+                
+                if (head == otherSnake.getCoordinates()[i]) {
+                    return true;
                 }
             }
         }
