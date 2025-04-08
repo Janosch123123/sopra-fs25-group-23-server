@@ -17,9 +17,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Random;
-import java.util.ArrayList;
+import java.util.*;
 
 @Service
 @Transactional
@@ -96,6 +94,7 @@ public class GameService {
             
             Snake snake = new Snake();
             snake.setUserId(playerId);
+            snake.setUsername(userService.getUserById(playerId).getUsername());
             snake.setDirection(direction);
             snake.setCoordinates(coordinate);
             snake.setLength(2);
@@ -129,13 +128,24 @@ public class GameService {
     }
 
     private void broadcastGameState(Game game) throws IOException {
+
         logger.info("Broadcasting game state for game: {}", game.getGameId());
         ObjectNode message = mapper.createObjectNode();
         message.put("type", "gameState");
 //        message.put("gameId", game.getGameId());
-        message.set("snakes", mapper.valueToTree(game.getSnakes()));
+//        message.set("snakes", mapper.valueToTree(game.getSnakes()));
         message.set("items", mapper.valueToTree(game.getItems()));
         message.put("timestamp", Math.round(game.getTimestamp()));
+        // Map mit Username als Key und Snake-Informationen als Value erstellen
+        Map<String, Object> snakesDictionary = new HashMap<>();
+        for (Snake snake : game.getSnakes()) {
+            String username = snake.getUsername(); // Benutzername als Key
+            snakesDictionary.put(username, snake.getCoordinates());
+        }
+
+        // Füge die strukturierte Map dem JSON-Objekt hinzu
+        message.set("snakes", mapper.valueToTree(snakesDictionary));
+
 
         // Get WebSocketHandler lazily only when needed
         WebSocketHandler webSocketHandler = getWebSocketHandler();

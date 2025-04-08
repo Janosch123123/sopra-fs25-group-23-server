@@ -7,6 +7,7 @@ public class Snake {
     private int[] head;
     private int[] tail;
     private Long userId;
+    private String username;
 
     public static boolean checkCollision(Snake snake, Game game) {
         for (Snake otherSnake : game.getSnakes()) {
@@ -22,6 +23,8 @@ public class Snake {
         }
         return false;
     }
+    public String getUsername() {return username;}
+    public void setUsername(String username) {this.username = username;}
 
     public int getLength() {
         return length;
