@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
 
 import java.io.IOException;
 import java.util.Map;
@@ -144,6 +146,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
                     session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
                     logger.info("Created lobby for session: {}", session.getId());
+
+                    sendLobbyStateToUsers(lobby.getId());
+
                 } catch (Exception e) {
                     logger.error("Error creating lobby", e);
                     sendErrorMessage(session, "Failed to create lobby: " + e.getMessage());
@@ -173,6 +178,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
                         lobbyRepository.save(lobby);
 
                         session.getAttributes().put("lobbyCode", lobbyCode);
+
+                        sendLobbyStateToUsers(lobbyCode);
+
                     }
                     session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
                 } catch (Exception e) {
@@ -294,5 +302,43 @@ public class WebSocketHandler extends TextWebSocketHandler {
         response.put("message", errorMessage);
         session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
         logger.warn("Sent error to client: {}", errorMessage);
+    }
+
+
+    private void sendLobbyStateToUsers(Long lobbyCode) throws IOException {
+        // Get the lobby
+        Lobby lobby = lobbyService.getLobbyById(lobbyCode);
+        if (lobby == null) {
+            logger.warn("Attempted to send state for non-existent lobby: {}", lobbyCode);
+            return;
+        }
+    
+        logger.info("Sending lobby state to users in lobby {}", lobbyCode);
+    
+        // Create the response object
+        ObjectNode response = mapper.createObjectNode();
+        response.put("type", "lobby_state");
+        response.put("lobbyId", lobby.getId());
+        response.put("adminId", lobby.getAdminId());
+    
+        // Create an array for participants
+        ArrayNode participantsArray = mapper.createArrayNode();
+        
+        // Add participant info to the array
+        for (Long userId : lobby.getParticipantIds()) {
+            User participant = userService.getUserById(userId);
+            if (participant != null) {
+                ObjectNode participantNode = mapper.createObjectNode();
+                participantNode.put("id", participant.getId());
+                participantNode.put("username", participant.getUsername());
+                participantNode.put("level", participant.getLevel());
+                participantsArray.add(participantNode);
+            }
+        }
+        
+        response.set("participants", participantsArray);
+        
+        // Broadcast the message to all participants in the lobby
+        broadcastToLobby(lobbyCode, response);
     }
 }
