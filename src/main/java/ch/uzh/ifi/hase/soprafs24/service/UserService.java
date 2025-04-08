@@ -5,7 +5,6 @@ import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-// import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -71,40 +70,40 @@ public class UserService {
     }
   }
 
-
   public ResponseEntity<String> logoutUser(String token) {
-      System.out.println("Received Token: " + token);
-      User user = userRepository.findByToken(token);
-      if (user != null) {
-          System.out.println("User found with token: " + user.getToken());
-          user.setStatus(UserStatus.OFFLINE);
-          userRepository.save(user);
-          return ResponseEntity.ok("{\"message\": \"Logout successful\"}");
-      } else {
-          System.out.println("No user found with token: " + token);
-          throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
-      }
+    System.out.println("Received Token: " + token);
+    User user = userRepository.findByToken(token);
+    if (user != null) {
+      System.out.println("User found with token: " + user.getToken());
+      user.setStatus(UserStatus.OFFLINE);
+      userRepository.save(user);
+      return ResponseEntity.ok("{\"message\": \"Logout successful\"}");
+    } else {
+      System.out.println("No user found with token: " + token);
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+    }
   }
 
   public User getUserById(Long id) {
     return userRepository.findById(id)
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
   }
+
   public User getUserByToken(String token) {
     User user = userRepository.findByToken(token);
 
     return user;
-}
+  }
 
   // public User updateUser(Long id, User updatedUser) {
-  //   System.out.println("Updating User with ID: {}" + id);
-  //   User user = getUserById(id);
-  //   user.setUsername(updatedUser.getUsername());
-  //   user.setPassword(updatedUser.getPassword());
-  //   user = userRepository.save(user);
-  //   userRepository.flush();
-  //   System.out.println("Updated Information for User: {}" + user);
-  //   return user;
+  // System.out.println("Updating User with ID: {}" + id);
+  // User user = getUserById(id);
+  // user.setUsername(updatedUser.getUsername());
+  // user.setPassword(updatedUser.getPassword());
+  // user = userRepository.save(user);
+  // userRepository.flush();
+  // System.out.println("Updated Information for User: {}" + user);
+  // return user;
   // }
 
   /**
@@ -124,6 +123,6 @@ public class UserService {
     if (userByUsername != null && !userByUsername.getId().equals(userToBeCreated.getId())) {
       log.error("Conflict: User with username {} already exists", userToBeCreated.getUsername());
       throw new ResponseStatusException(HttpStatus.CONFLICT, String.format(baseErrorMessage, "username", "is"));
-    } 
+    }
   }
 }

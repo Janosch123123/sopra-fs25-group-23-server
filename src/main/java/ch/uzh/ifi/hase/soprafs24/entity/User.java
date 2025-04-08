@@ -36,7 +36,7 @@ public class User implements Serializable {
   private UserStatus status;
 
   @Column(nullable = false)
-  private String password;  
+  private String password;
 
   @Column(nullable = false)
   private Date creationDate;
@@ -50,9 +50,13 @@ public class User implements Serializable {
   @Column
   private int level;
 
+  @Column
+  private long lobbyCode;
+
   public int getLevel() {
     return level;
   }
+
   public void setLevel(int level) {
     this.level = level;
   }
@@ -60,6 +64,7 @@ public class User implements Serializable {
   public int getWins() {
     return wins;
   }
+
   public void setWins(int wins) {
     this.wins = wins;
   }
@@ -67,6 +72,7 @@ public class User implements Serializable {
   public int getKills() {
     return kills;
   }
+
   public void setKills(int kills) {
     this.kills = kills;
   }
@@ -78,9 +84,6 @@ public class User implements Serializable {
   public void setId(Long id) {
     this.id = id;
   }
-
-
-
 
   public String getUsername() {
     return username;
@@ -120,5 +123,13 @@ public class User implements Serializable {
 
   public void setCreationDate(Date creationDate) {
     this.creationDate = creationDate;
+  }
+
+  public long getLobbyCode() {
+    return lobbyCode;
+  }
+
+  public void setLobbyCode(long lobbyCode) {
+    this.lobbyCode = lobbyCode;
   }
 }
