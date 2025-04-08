@@ -8,21 +8,6 @@ public class Snake {
     private int[] tail;
     private Long userId;
 
-    public static boolean checkCollision(Snake snake, Game game) {
-        for (Snake otherSnake : game.getSnakes()) {
-            if (snake != otherSnake) {
-                for (int i = 0; i < snake.getLength(); i++) {
-                    if (snake.getCoordinates()[i][0] == otherSnake.getCoordinates()[i][0]
-                            && snake.getCoordinates()[i][1] == otherSnake.getCoordinates()[i][1]) {
-                        return true;
-                    }
-
-                }
-            }
-        }
-        return false;
-    }
-
     public int getLength() {
         return length;
     }
@@ -69,13 +54,5 @@ public class Snake {
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public void growSnake() {
-        // increase size of snake
-    }
-
-    public void moveSnake() {
-        // move snake one field to in direction of head
     }
 }
