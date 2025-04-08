@@ -10,6 +10,7 @@ public class Game {
     private Lobby lobby;
     private List<Snake> snakes;
     private List<Item> items;
+    private float timestamp;
     private boolean gameOver;
 
     public Game() {
@@ -17,7 +18,10 @@ public class Game {
         this.snakes = new ArrayList<>(); // Initialize the snakes list
         this.items = new ArrayList<>(); // Initialize the items list
         this.gameOver = false; // Initialize gameOver flag
+        this.timestamp = 180;
     }
+    public float getTimestamp() {return timestamp;}
+    public void setTimestamp(float timestamp) {this.timestamp = timestamp;}
 
     private static synchronized long generateUniqueGameId() {
         idCounter++; // Zähler wird inkrementiert
