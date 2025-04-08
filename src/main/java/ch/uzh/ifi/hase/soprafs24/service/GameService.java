@@ -181,8 +181,7 @@ public class GameService {
             if (snakeService.checkCollision(snake, game)) {
                 // Snake has collided with another snake
                 logger.info("Collision detected for snake: {}", snake.getUserId());
-                
-                continue;
+                snake.setCoordinates(new int[0][0]); // Set coordinates to empty to mark as dead
             }
         }
 
