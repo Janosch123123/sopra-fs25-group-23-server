@@ -213,9 +213,40 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     logger.error("Error starting game", e);
                     sendErrorMessage(session, "Failed to start game: " + e.getMessage());
                 }
-            } else {
+            } else if ("playerMove".equals(type)) {
+                String token = getTokenFromSession(session);
+                try {
+                    User user = userService.getUserByToken(token);
+                    if (user == null) {
+                        sendErrorMessage(session, "Invalid token or user not found");
+                        return;
+                    }
+                    long lobbyCode = user.getLobbyCode();
+                    Lobby lobby = lobbyService.getLobbyById(lobbyCode);
+                    if (lobby == null) {
+                        sendErrorMessage(session, "Invalid lobby ID");
+                        return;
+                    }
+                    Game game = LobbyService.getGameByLobby(lobby);
+
+                    if (game == null) {
+                        sendErrorMessage(session, "Game not found for lobby");
+                        return;
+                    }
+                    String direction = jsonNode.get("direction").asText();
+                    gameService.respondToKeyInputs(game, user, direction);
+
+                    
+
+                } catch (Exception e) {
+                    logger.error("Error processing player move", e);
+                    sendErrorMessage(session, "Failed to process player move: " + e.getMessage());
+                }
+            }
+            else {
                 sendErrorMessage(session, "Unknown message type: " + type);
             }
+            
         } catch (IOException e) {
             logger.error("Error parsing message", e);
             sendErrorMessage(session, "Failed to parse message: " + e.getMessage());
