@@ -221,14 +221,19 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     }
 
                     long lobbyCode = user.getLobbyCode();
-                    // Direct call to GameService's createGame method
-                    //Get lobby by user
-                    
-                    Lobby lobby = jsonNode.has("lobbyId") ? lobbyService.getLobbyById(jsonNode.get("lobbyId").asLong()) : null;
+                    Lobby lobby = lobbyService.getLobbyById(lobbyCode);
                     if (lobby == null) {
                         sendErrorMessage(session, "Invalid lobby ID");
                         return;
                     }
+                    // Direct call to GameService's createGame method
+                    //Get lobby by user
+                    
+                    // Lobby lobby = jsonNode.has("lobbyId") ? lobbyService.getLobbyById(jsonNode.get("lobbyId").asLong()) : null;
+                    // if (lobby == null) {
+                    //     sendErrorMessage(session, "Invalid lobby ID");
+                    //     return;
+                    // }
                     
                     // Changed from static to instance method call
                     Game game = gameService.createGame(lobby);
