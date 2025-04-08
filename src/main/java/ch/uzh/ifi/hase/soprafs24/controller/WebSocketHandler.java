@@ -95,7 +95,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     }
 
-    private void broadcastToLobby(long lobbyCode, ObjectNode updateMessage) throws IOException {
+    public void broadcastToLobby(long lobbyCode, ObjectNode updateMessage) throws IOException {
         // Retrieve the lobby by its code
         Lobby lobby = lobbyService.getLobbyById(lobbyCode);
         if (lobby == null) {

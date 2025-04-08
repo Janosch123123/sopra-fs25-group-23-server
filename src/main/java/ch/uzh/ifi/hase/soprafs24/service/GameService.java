@@ -35,7 +35,7 @@ public class GameService {
     private final ApplicationContext applicationContext;
 
     @Autowired
-    public GameService(LobbyRepository lobbyRepository, UserRepository userRepository, 
+    public GameService(LobbyRepository lobbyRepository, UserRepository userRepository,
                       UserService userService, ApplicationContext applicationContext) {
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
@@ -60,17 +60,7 @@ public class GameService {
         
         // Log player IDs to debug
         logger.info("Creating game with {} players", playersId.size());
-        for (Long playerId : playersId) {
-            logger.info("Adding snake for player: {}", playerId);
-            Snake snake = new Snake();
-            snake.setUserId(playerId);
-            snake.setDirection("DOWN");
-            snake.setCoordinates(new int[][]{{2, 2}, {2, 1}});
-            snake.setLength(2);
-            snake.setHead(new int[]{2, 2});
-            snake.setTail(new int[]{2, 1});
-            game.addSnake(snake);
-        }
+        addSnakesToBoard(game, playersId);
         
         List<Item> gameItems = new ArrayList<>();
         gameItems.add(new Item(new int[]{12, 12}, "cookie"));
@@ -81,13 +71,41 @@ public class GameService {
         return game;
     }
 
+    private void addSnakesToBoard(Game game, List<Long> playersId){
+        for (Long playerId : playersId) {
+            logger.info("Adding snake for player: {}", playerId);
+            int[][] coordinate;
+            int index = playersId.indexOf(playerId);
+            coordinate = switch (index % 4) {
+                case 0 -> new int[][]{{2, 2}, {2, 1}};
+                case 1 -> new int[][]{{2, 1}, {3, 1}};
+                case 2 -> new int[][]{{3, 1}, {3, 2}};
+                case 3 -> new int[][]{{3, 2}, {2, 2}};
+                default -> new int[][]{{2, 2}, {2, 1}};
+            };
+            Snake snake = new Snake();
+            snake.setUserId(playerId);
+            snake.setDirection("DOWN");
+            snake.setCoordinates(coordinate);
+            snake.setLength(2);
+            snake.setHead(new int[]{2, 2});
+            snake.setTail(new int[]{2, 1});
+            game.addSnake(snake);
+        }
+    }
+
     public void start(Game game) {
         new Thread(() -> { // Startet die Game-Loop in einem eigenen Thread
             while (!game.isGameOver()) {
                 updateGameState(game); // Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
-                broadcastGameState(game); // Sendet Spielzustand an alle WebSocket-Clients
                 try {
-                    Thread.sleep(100); // Wartezeit für den nächsten Loop (z. B. 100ms pro Frame)
+                    broadcastGameState(game); // Sendet Spielzustand an alle WebSocket-Clients
+                }
+                catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
+                    Thread.sleep(2000); // Wartezeit für den nächsten Loop (z. B. 100ms pro Frame)
                 }
                 catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -98,7 +116,8 @@ public class GameService {
         }).start();
     }
 
-    private void broadcastGameState(Game game) {
+    private void broadcastGameState(Game game) throws IOException {
+        logger.info("Broadcasting game state for game: {}", game.getGameId());
         ObjectNode message = mapper.createObjectNode();
         message.put("type", "gameState");
         message.put("gameId", game.getGameId());
@@ -107,17 +126,18 @@ public class GameService {
 
         // Get WebSocketHandler lazily only when needed
         WebSocketHandler webSocketHandler = getWebSocketHandler();
-        
-        for (Long playerId : game.getLobby().getParticipantIds()) {
-            WebSocketSession session = webSocketHandler.getSessionByUserId(playerId);
-            try {
-                if (session != null && session.isOpen()) {
-                    session.sendMessage(new TextMessage(message.toString()));
-                }
-            } catch (IOException e) {
-                logger.error("Error sending game update to user {}", playerId, e);
-            }
-        }
+        webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
+//
+//        for (Long playerId : game.getLobby().getParticipantIds()) {
+//            WebSocketSession session = webSocketHandler.getSessionByUserId(playerId);
+//            try {
+//                if (session != null && session.isOpen()) {
+//                    session.sendMessage(new TextMessage(message.toString()));
+//                }
+//            } catch (IOException e) {
+//                logger.error("Error sending game update to user {}", playerId, e);
+//            }
+//        }
     }
 
     private void endGame(Game game) {
@@ -125,14 +145,19 @@ public class GameService {
     }
 
     private void updateGameState(Game game) {
-        for (Snake snake : game.getSnakes()) {
-            // Bewege die Schlange gemäß ihrer Richtung
-            snake.moveSnake();
-            // Prüfe, ob die Schlange mit etwas kollidiert
-            if (Snake.checkCollision(snake, game)) {
-                snake.setCoordinates(null); // Snake stirbt
-            }
-        }
+//        List<Snake> toRemove = new ArrayList<>();
+//        for (Snake snake : game.getSnakes()) {
+//            if (snake.getCoordinates() == null) {
+//                continue; // already dead
+//            }
+//            snake.moveSnake();
+//            if (Snake.checkCollision(snake, game)) {
+//                toRemove.add(snake);
+//            }
+//        }
+//        for (Snake snake : toRemove) {
+//            game.getSnakes().remove(snake);
+//        }
         // Spawne ggf. neue Items (mit 25% Chance)
         Random random = new Random();
         double chance = random.nextDouble();
