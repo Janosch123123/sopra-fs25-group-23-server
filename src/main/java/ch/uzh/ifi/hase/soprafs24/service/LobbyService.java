@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LobbyService {
 
     private final Logger log = LoggerFactory.getLogger(LobbyService.class);
-    private static final Map<Lobby, Game> lobbyGamesMap = new ConcurrentHashMap<>();
+    private static final Map<Long, Game> lobbyGamesMap = new ConcurrentHashMap<>();
 
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
@@ -33,10 +33,10 @@ public class LobbyService {
         this.userRepository = userRepository;
         this.userService = userService;
     }
-    public static Game getGameByLobby(Lobby lobby) {
-        return lobbyGamesMap.get(lobby);
+    public static Game getGameByLobby(long lobbyId) {
+        return lobbyGamesMap.get(lobbyId);
     }
-    public static void putGameToLobby(Game game, Lobby lobby) {lobbyGamesMap.put(lobby, game);}
+    public static void putGameToLobby(Game game, Long lobbyId) {lobbyGamesMap.put(lobbyId, game);}
 
     /**
      * Creates a new lobby with the given user as admin

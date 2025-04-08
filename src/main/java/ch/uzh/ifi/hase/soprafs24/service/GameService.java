@@ -57,7 +57,7 @@ public class GameService {
         
         Game game = new Game();
         game.setLobby(managedLobby);
-        putGameToLobby(game, managedLobby);
+        putGameToLobby(game, managedLobby.getId());
         
         List<Long> playersId = managedLobby.getParticipantIds();
         
@@ -237,9 +237,9 @@ public class GameService {
         game.addItem(item);
     }
 
-    public void respondToKeyInputs(Game game, Long userId, String direction) {
+    public void respondToKeyInputs(Game game, User user, String direction) {
         for (Snake snake : game.getSnakes()) {
-            if (snake.getUserId().equals(userId)) {
+            if (snake.getUserId().equals(user.getId())) {
                 snake.setDirection(direction);
             }
         }

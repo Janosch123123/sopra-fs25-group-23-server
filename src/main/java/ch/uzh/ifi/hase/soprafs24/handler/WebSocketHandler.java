@@ -229,7 +229,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                         sendErrorMessage(session, "Invalid lobby ID");
                         return;
                     }
-                    Game game = LobbyService.getGameByLobby(lobby);
+                    Game game = LobbyService.getGameByLobby(lobby.getId());
 
                     if (game == null) {
                         sendErrorMessage(session, "Game not found for lobby");
@@ -238,7 +238,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     String direction = jsonNode.get("direction").asText();
                     gameService.respondToKeyInputs(game, user, direction);
 
-                    
+                    ObjectNode keyChange = mapper.createObjectNode();
+                    keyChange.put("type", "direction changed based on keyInpurt to " + direction);
+                    broadcastToLobby(lobbyCode, keyChange);
 
                 } catch (Exception e) {
                     logger.error("Error processing player move", e);
