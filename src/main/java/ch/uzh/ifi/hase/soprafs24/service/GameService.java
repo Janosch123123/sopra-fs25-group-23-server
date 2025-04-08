@@ -97,7 +97,8 @@ public class GameService {
     public void start(Game game) {
         new Thread(() -> { // Startet die Game-Loop in einem eigenen Thread
             while (!game.isGameOver()) {
-                updateGameState(game); // Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
+                updateGameState(game);
+                game.setTimestamp(game.getTimestamp()-1);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
                 try {
                     broadcastGameState(game); // Sendet Spielzustand an alle WebSocket-Clients
                 }
@@ -120,9 +121,10 @@ public class GameService {
         logger.info("Broadcasting game state for game: {}", game.getGameId());
         ObjectNode message = mapper.createObjectNode();
         message.put("type", "gameState");
-        message.put("gameId", game.getGameId());
+//        message.put("gameId", game.getGameId());
         message.set("snakes", mapper.valueToTree(game.getSnakes()));
         message.set("items", mapper.valueToTree(game.getItems()));
+        message.put("timestamp", Math.round(game.getTimestamp()));
 
         // Get WebSocketHandler lazily only when needed
         WebSocketHandler webSocketHandler = getWebSocketHandler();

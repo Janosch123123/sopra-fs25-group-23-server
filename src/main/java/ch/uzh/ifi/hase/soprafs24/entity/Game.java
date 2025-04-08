@@ -10,6 +10,7 @@ public class Game {
     private Lobby lobby;
     private List<Snake> snakes;
     private List<Item> items;
+    private float timestamp;
     private boolean gameOver;
 
     public Game() {
@@ -17,6 +18,7 @@ public class Game {
         this.snakes = new ArrayList<>(); // Initialize the snakes list
         this.items = new ArrayList<>(); // Initialize the items list
         this.gameOver = false; // Initialize gameOver flag
+        this.timestamp = 180;
     }
 
     private static synchronized long generateUniqueGameId() {
@@ -80,6 +82,12 @@ public class Game {
                 alives++;
             }
         }
-        return alives <= 1; // Game is over when 0 or 1 players remain
+        return alives <= 1 && timestamp>0; // Game is over when 0 or 1 players remain
+    }
+    public float getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(float timestamp) {
+        this.timestamp = timestamp;
     }
 }
