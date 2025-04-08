@@ -74,18 +74,29 @@ public class GameService {
     private void addSnakesToBoard(Game game, List<Long> playersId){
         for (Long playerId : playersId) {
             logger.info("Adding snake for player: {}", playerId);
-            int[][] coordinate;
+            
             int index = playersId.indexOf(playerId);
+            
+            int[][] coordinate;
             coordinate = switch (index % 4) {
-                case 0 -> new int[][]{{2, 2}, {2, 1}};
-                case 1 -> new int[][]{{2, 1}, {3, 1}};
-                case 2 -> new int[][]{{3, 1}, {3, 2}};
-                case 3 -> new int[][]{{3, 2}, {2, 2}};
-                default -> new int[][]{{2, 2}, {2, 1}};
+                case 0 -> new int[][]{{4, 4}, {3, 4}, {2, 4}};
+                case 1 -> new int[][]{{25, 20}, {26, 20}, {27, 20}};
+                case 2 -> new int[][]{{25, 4}, {25, 3}, {25, 2}};
+                case 3 -> new int[][]{{4, 20}, {4, 21}, {4, 22}};
+                default -> new int[][]{{4, 4}, {3, 4}, {2, 4}}; // Default case
             };
+            String direction = switch (index % 4) {
+                case 0 -> "RIGHT";
+                case 1 -> "LEFT";
+                case 2 -> "UP";
+                case 3 -> "DOWN";
+                default -> "RIGHT";
+            };
+            
+            
             Snake snake = new Snake();
             snake.setUserId(playerId);
-            snake.setDirection("DOWN");
+            snake.setDirection(direction);
             snake.setCoordinates(coordinate);
             snake.setLength(2);
             snake.setHead(new int[]{2, 2});
