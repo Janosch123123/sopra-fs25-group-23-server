@@ -32,6 +32,8 @@ public class SnakeSerivce {
         int[][] newCoordinates = new int[coordinates.length][];
         newCoordinates[0] = newHead;
         System.arraycopy(coordinates, 0, newCoordinates, 1, coordinates.length-1);
+        snake.setCoordinates(newCoordinates);
+        System.out.println("Snake moved to: " + newHead[0] + ", " + newHead[1]);
     }
 
     public static boolean checkCollision(Snake snake, Game game) {
