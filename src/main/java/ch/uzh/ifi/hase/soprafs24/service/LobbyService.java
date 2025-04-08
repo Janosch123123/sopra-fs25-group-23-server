@@ -7,28 +7,27 @@ import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 @Service
 @Transactional
 public class LobbyService {
-    
+
     private final Logger log = LoggerFactory.getLogger(LobbyService.class);
-    
+
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
     private final UserService userService;
-    
-    @Autowired
+
+    // @Autowired
     public LobbyService(LobbyRepository lobbyRepository, UserRepository userRepository, UserService userService) {
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
         this.userService = userService;
     }
-    
+
     /**
      * Creates a new lobby with the given user as admin
      *
@@ -39,25 +38,25 @@ public class LobbyService {
         if (admin == null) {
             throw new IllegalArgumentException("Admin user cannot be null");
         }
-        
+
         log.debug("Creating new lobby with admin: {}", admin.getUsername());
-        
+
         // Create new lobby
         Lobby lobby = new Lobby();
         lobby.setAdminId(admin.getId());
-        
+
         // Save to get an ID
         Lobby savedLobby = lobbyRepository.save(lobby);
-        
+
         // Add admin as first participant
         savedLobby.addParticipant(admin);
         lobbyRepository.save(savedLobby);
-        
+
         log.info("Created new lobby with ID: {} and admin: {}", savedLobby.getId(), admin.getUsername());
-        
+
         return savedLobby;
     }
-    
+
     /**
      * Creates a new lobby with user identified by token as admin
      *
@@ -69,18 +68,18 @@ public class LobbyService {
         if (token == null || token.isEmpty()) {
             throw new IllegalArgumentException("Authentication token cannot be null or empty");
         }
-        
+
         // Get user from token
         User user = userService.getUserByToken(token);
-        
+
         if (user == null) {
             throw new IllegalArgumentException("Invalid token or user not found");
         }
-        
+
         // Use existing method to create the lobby with the found user
         return createLobby(user);
     }
-    
+
     /**
      * Gets a lobby by its ID
      *
@@ -107,11 +106,12 @@ public class LobbyService {
             return false;
         }
     }
+
     public void addLobbyCodeToUser(User user, long lobbyCode) {
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null and lobby code must be positive");
         }
-        
+
         user.setLobbyCode(lobbyCode);
         userRepository.save(user);
     }
