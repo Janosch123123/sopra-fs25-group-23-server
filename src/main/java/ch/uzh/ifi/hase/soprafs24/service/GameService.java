@@ -19,6 +19,8 @@ import org.springframework.web.socket.WebSocketSession;
 import java.io.IOException;
 import java.util.*;
 
+import static ch.uzh.ifi.hase.soprafs24.service.LobbyService.putGameToLobby;
+
 @Service
 @Transactional
 public class GameService {
@@ -55,6 +57,7 @@ public class GameService {
         
         Game game = new Game();
         game.setLobby(managedLobby);
+        putGameToLobby(game, managedLobby);
         
         List<Long> playersId = managedLobby.getParticipantIds();
         

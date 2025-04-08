@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static ch.uzh.ifi.hase.soprafs24.service.LobbyService.getGameByLobby;
+
 public class WebSocketHandler extends TextWebSocketHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
