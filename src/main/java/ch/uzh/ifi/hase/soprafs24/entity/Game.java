@@ -20,6 +20,8 @@ public class Game {
         this.gameOver = false; // Initialize gameOver flag
         this.timestamp = 180;
     }
+    public float getTimestamp() {return timestamp;}
+    public void setTimestamp(float timestamp) {this.timestamp = timestamp;}
 
     private static synchronized long generateUniqueGameId() {
         idCounter++; // Zähler wird inkrementiert
@@ -82,12 +84,6 @@ public class Game {
                 alives++;
             }
         }
-        return alives <= 1 && timestamp>0; // Game is over when 0 or 1 players remain
-    }
-    public float getTimestamp() {
-        return timestamp;
-    }
-    public void setTimestamp(float timestamp) {
-        this.timestamp = timestamp;
+        return false; // Game is over when 0 or 1 players remain
     }
 }

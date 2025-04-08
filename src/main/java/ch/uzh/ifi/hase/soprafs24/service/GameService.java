@@ -26,6 +26,7 @@ public class GameService {
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final SnakeSerivce snakeService;
     private final ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(GameService.class);
     
@@ -34,11 +35,12 @@ public class GameService {
 
     @Autowired
     public GameService(LobbyRepository lobbyRepository, UserRepository userRepository,
-                      UserService userService, ApplicationContext applicationContext) {
+                      UserService userService, ApplicationContext applicationContext, SnakeSerivce snakeService) {
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
         this.userService = userService;
         this.applicationContext = applicationContext;
+        this.snakeService = snakeService;
     }
     
     // Add a method to get WebSocketHandler lazily when needed
@@ -181,6 +183,23 @@ public class GameService {
 //        for (Snake snake : toRemove) {
 //            game.getSnakes().remove(snake);
 //        }
+        
+        for (Snake snake : game.getSnakes()) {
+            if (snake.getCoordinates().length == 0) {
+                continue; // already dead
+            }
+            snakeService.moveSnake(snake);
+
+            if (snakeService.checkCollision(snake, game)) {
+                // Snake has collided with another snake
+                logger.info("Collision detected for snake: {}", snake.getUserId());
+                
+                continue;
+            }
+        }
+
+
+
         // Spawne ggf. neue Items (mit 25% Chance)
         Random random = new Random();
         double chance = random.nextDouble();
