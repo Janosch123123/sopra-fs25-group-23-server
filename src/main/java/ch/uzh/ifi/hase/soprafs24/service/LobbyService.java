@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
+import ch.uzh.ifi.hase.soprafs24.entity.Game;
 import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.repository.LobbyRepository;
@@ -10,12 +11,17 @@ import org.slf4j.LoggerFactory;
 // import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.socket.WebSocketSession;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Transactional
 public class LobbyService {
 
     private final Logger log = LoggerFactory.getLogger(LobbyService.class);
+    private static final Map<Long, Game> lobbyGamesMap = new ConcurrentHashMap<>();
 
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
@@ -27,6 +33,10 @@ public class LobbyService {
         this.userRepository = userRepository;
         this.userService = userService;
     }
+    public static Game getGameByLobby(long lobbyId) {
+        return lobbyGamesMap.get(lobbyId);
+    }
+    public static void putGameToLobby(Game game, Long lobbyId) {lobbyGamesMap.put(lobbyId, game);}
 
     /**
      * Creates a new lobby with the given user as admin

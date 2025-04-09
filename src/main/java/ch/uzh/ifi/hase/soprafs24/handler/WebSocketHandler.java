@@ -18,10 +18,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static ch.uzh.ifi.hase.soprafs24.service.LobbyService.getGameByLobby;
 
 public class WebSocketHandler extends TextWebSocketHandler {
 
@@ -142,6 +146,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
                     session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
                     logger.info("Created lobby for session: {}", session.getId());
+
+                    sendLobbyStateToUsers(lobby.getId());
+
                 } catch (Exception e) {
                     logger.error("Error creating lobby", e);
                     sendErrorMessage(session, "Failed to create lobby: " + e.getMessage());
@@ -171,6 +178,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
                         lobbyRepository.save(lobby);
 
                         session.getAttributes().put("lobbyCode", lobbyCode);
+
+                        sendLobbyStateToUsers(lobbyCode);
+
                     }
                     session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
                 } catch (Exception e) {
@@ -213,9 +223,42 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     logger.error("Error starting game", e);
                     sendErrorMessage(session, "Failed to start game: " + e.getMessage());
                 }
-            } else {
+            } else if ("playerMove".equals(type)) {
+                String token = getTokenFromSession(session);
+                try {
+                    User user = userService.getUserByToken(token);
+                    if (user == null) {
+                        sendErrorMessage(session, "Invalid token or user not found");
+                        return;
+                    }
+                    long lobbyCode = user.getLobbyCode();
+                    Lobby lobby = lobbyService.getLobbyById(lobbyCode);
+                    if (lobby == null) {
+                        sendErrorMessage(session, "Invalid lobby ID");
+                        return;
+                    }
+                    Game game = LobbyService.getGameByLobby(lobby.getId());
+
+                    if (game == null) {
+                        sendErrorMessage(session, "Game not found for lobby");
+                        return;
+                    }
+                    String direction = jsonNode.get("direction").asText();
+                    gameService.respondToKeyInputs(game, user, direction);
+
+                    ObjectNode keyChange = mapper.createObjectNode();
+                    keyChange.put("type", "direction changed based on keyInpurt to " + direction);
+                    broadcastToLobby(lobbyCode, keyChange);
+
+                } catch (Exception e) {
+                    logger.error("Error processing player move", e);
+                    sendErrorMessage(session, "Failed to process player move: " + e.getMessage());
+                }
+            }
+            else {
                 sendErrorMessage(session, "Unknown message type: " + type);
             }
+            
         } catch (IOException e) {
             logger.error("Error parsing message", e);
             sendErrorMessage(session, "Failed to parse message: " + e.getMessage());
@@ -259,5 +302,43 @@ public class WebSocketHandler extends TextWebSocketHandler {
         response.put("message", errorMessage);
         session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
         logger.warn("Sent error to client: {}", errorMessage);
+    }
+
+
+    private void sendLobbyStateToUsers(Long lobbyCode) throws IOException {
+        // Get the lobby
+        Lobby lobby = lobbyService.getLobbyById(lobbyCode);
+        if (lobby == null) {
+            logger.warn("Attempted to send state for non-existent lobby: {}", lobbyCode);
+            return;
+        }
+    
+        logger.info("Sending lobby state to users in lobby {}", lobbyCode);
+    
+        // Create the response object
+        ObjectNode response = mapper.createObjectNode();
+        response.put("type", "lobby_state");
+        response.put("lobbyId", lobby.getId());
+        response.put("adminId", lobby.getAdminId());
+    
+        // Create an array for participants
+        ArrayNode participantsArray = mapper.createArrayNode();
+        
+        // Add participant info to the array
+        for (Long userId : lobby.getParticipantIds()) {
+            User participant = userService.getUserById(userId);
+            if (participant != null) {
+                ObjectNode participantNode = mapper.createObjectNode();
+                participantNode.put("id", participant.getId());
+                participantNode.put("username", participant.getUsername());
+                participantNode.put("level", participant.getLevel());
+                participantsArray.add(participantNode);
+            }
+        }
+        
+        response.set("participants", participantsArray);
+        
+        // Broadcast the message to all participants in the lobby
+        broadcastToLobby(lobbyCode, response);
     }
 }

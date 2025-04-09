@@ -17,9 +17,9 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Random;
-import java.util.ArrayList;
+import java.util.*;
+
+import static ch.uzh.ifi.hase.soprafs24.service.LobbyService.putGameToLobby;
 
 @Service
 @Transactional
@@ -28,6 +28,7 @@ public class GameService {
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final SnakeSerivce snakeService;
     private final ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(GameService.class);
     
@@ -36,11 +37,12 @@ public class GameService {
 
     @Autowired
     public GameService(LobbyRepository lobbyRepository, UserRepository userRepository,
-                      UserService userService, ApplicationContext applicationContext) {
+                      UserService userService, ApplicationContext applicationContext, SnakeSerivce snakeService) {
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
         this.userService = userService;
         this.applicationContext = applicationContext;
+        this.snakeService = snakeService;
     }
     
     // Add a method to get WebSocketHandler lazily when needed
@@ -55,6 +57,7 @@ public class GameService {
         
         Game game = new Game();
         game.setLobby(managedLobby);
+        putGameToLobby(game, managedLobby.getId());
         
         List<Long> playersId = managedLobby.getParticipantIds();
         
@@ -96,6 +99,7 @@ public class GameService {
             
             Snake snake = new Snake();
             snake.setUserId(playerId);
+            snake.setUsername(userService.getUserById(playerId).getUsername());
             snake.setDirection(direction);
             snake.setCoordinates(coordinate);
             snake.setLength(2);
@@ -129,13 +133,29 @@ public class GameService {
     }
 
     private void broadcastGameState(Game game) throws IOException {
+
         logger.info("Broadcasting game state for game: {}", game.getGameId());
         ObjectNode message = mapper.createObjectNode();
         message.put("type", "gameState");
-//        message.put("gameId", game.getGameId());
-        message.set("snakes", mapper.valueToTree(game.getSnakes()));
-        message.set("items", mapper.valueToTree(game.getItems()));
         message.put("timestamp", Math.round(game.getTimestamp()));
+        // Map mit Username als Key und Snake-Informationen als Value erstellen
+        Map<String, Object> snakesDictionary = new HashMap<>();
+        for (Snake snake : game.getSnakes()) {
+            String username = snake.getUsername(); // Benutzername als Key
+            snakesDictionary.put(username, snake.getCoordinates());
+        }
+        // Füge die strukturierte Map dem JSON-Objekt hinzu
+        message.set("snakes", mapper.valueToTree(snakesDictionary));
+// Extrahiere die Cookies aus der Items-Liste (alle Items mit type "cookie")
+        List<int[]> cookiePositions = new ArrayList<>();
+        for (Item item : game.getItems()) {
+            if ("cookie".equals(item.getType())) { // Prüfen, ob Item-Typ "cookie" ist
+                cookiePositions.add(item.getPosition()); // Position hinzufügen
+            }
+        }
+        // Füge die Cookie-Positionen zu den JSON-Daten hinzu
+        message.set("cookies", mapper.valueToTree(cookiePositions));
+
 
         // Get WebSocketHandler lazily only when needed
         WebSocketHandler webSocketHandler = getWebSocketHandler();
@@ -171,6 +191,22 @@ public class GameService {
 //        for (Snake snake : toRemove) {
 //            game.getSnakes().remove(snake);
 //        }
+        
+        for (Snake snake : game.getSnakes()) {
+            if (snake.getCoordinates().length == 0) {
+                continue; // already dead
+            }
+            snakeService.moveSnake(snake);
+
+            if (snakeService.checkCollision(snake, game)) {
+                // Snake has collided with another snake
+                logger.info("Collision detected for snake: {}", snake.getUserId());
+                snake.setCoordinates(new int[0][0]); // Set coordinates to empty to mark as dead
+            }
+        }
+
+
+
         // Spawne ggf. neue Items (mit 25% Chance)
         Random random = new Random();
         double chance = random.nextDouble();
@@ -199,6 +235,14 @@ public class GameService {
         }
         Item item = new Item(new int[]{x, y}, "cookie");
         game.addItem(item);
+    }
+
+    public void respondToKeyInputs(Game game, User user, String direction) {
+        for (Snake snake : game.getSnakes()) {
+            if (snake.getUserId().equals(user.getId())) {
+                snake.setDirection(direction);
+            }
+        }
     }
 }
 
