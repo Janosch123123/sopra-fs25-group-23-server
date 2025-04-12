@@ -147,7 +147,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
                     logger.info("Created lobby for session: {}", session.getId());
 
-                    sendLobbyStateToUsers(lobby.getId());
 
                 } catch (Exception e) {
                     logger.error("Error creating lobby", e);
@@ -223,6 +222,17 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     logger.error("Error starting game", e);
                     sendErrorMessage(session, "Failed to start game: " + e.getMessage());
                 }
+            } else if ("lobbystate".equals(type)) {
+                String token = getTokenFromSession(session);
+                User user = userService.getUserByToken(token);
+            
+                if (user == null) {
+                    sendErrorMessage(session, "Invalid token or user not found");
+                    return;
+                }
+            
+                long lobbyCode = user.getLobbyCode();
+                sendLobbyStateToUsers(lobbyCode);
             } else if ("playerMove".equals(type)) {
                 String token = getTokenFromSession(session);
                 try {
