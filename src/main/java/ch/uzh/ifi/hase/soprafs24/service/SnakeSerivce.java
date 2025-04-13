@@ -2,6 +2,7 @@ package ch.uzh.ifi.hase.soprafs24.service;
 
 import javax.transaction.Transactional;
 
+import ch.uzh.ifi.hase.soprafs24.entity.Item;
 import org.springframework.stereotype.Service;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Game;
@@ -11,9 +12,6 @@ import ch.uzh.ifi.hase.soprafs24.entity.Snake;
 @Transactional
 public class SnakeSerivce {
 
-    public void growSnake() {
-        // increase size of snake
-    }
 
     public void moveSnake(Snake snake) {
         int[][] coordinates = snake.getCoordinates();
@@ -29,11 +27,50 @@ public class SnakeSerivce {
         } else {
             throw new IllegalArgumentException("Invalid direction: " + snake.getDirection());
         }
-        int[][] newCoordinates = new int[coordinates.length][];
+        // Überprüfe auf Cookie-Kollision
+        boolean ateCookie = checkCookieCollision(snake);
+
+        // Neues Koordinaten-Array erstellen
+        int[][] newCoordinates;
+        if (ateCookie) {
+            // Wenn ein Cookie gegessen wurde, behalten wir den Schwanz (Schlange wächst)
+            newCoordinates = new int[coordinates.length + 1][];
+        } else {
+            // Normalfall: Der Schwanz wird gelöscht (gleiche Länge)
+            newCoordinates = new int[coordinates.length][];
+        }
         newCoordinates[0] = newHead;
+        if (ateCookie) {
+            System.arraycopy(coordinates, 0, newCoordinates, 1, coordinates.length);
+        }else{
         System.arraycopy(coordinates, 0, newCoordinates, 1, coordinates.length-1);
+        }
         snake.setCoordinates(newCoordinates);
         System.out.println("Snake moved to: " + newHead[0] + ", " + newHead[1]);
+
+    }
+
+    private boolean checkCookieCollision(Snake snake) {
+        // Position des Kopfes der Schlange abrufen
+        int[] head = snake.getCoordinates()[0]; // Der Kopf ist der erste Punkt im Koordinatenarray
+
+        // Durchlaufen der Items im Spiel (Game)
+        for (Item item : snake.getGame().getItems()) {
+            // Prüfen, ob das aktuelle Item vom Typ "cookie" ist
+            if ("cookie".equals(item.getType())) {
+                int[] cookiePosition = item.getPosition(); // Cookie-Position abrufen
+
+                // Prüfen, ob die Kopfposition mit der Cookie-Position übereinstimmt
+                if (head[0] == cookiePosition[0] && head[1] == cookiePosition[1]) {
+                    // Kollision -> Entfernt den Cookie aus dem Spiel
+                    snake.getGame().getItems().remove(item);
+                    return true; // Eine Kollision wurde festgestellt
+                }
+            }
+        }
+
+        // Keine Kollision gefunden
+        return false;
     }
 
     public boolean checkCollision(Snake snake, Game game) {
