@@ -98,6 +98,7 @@ public class GameService {
             
             
             Snake snake = new Snake();
+            snake.setGame(game);
             snake.setUserId(playerId);
             snake.setUsername(userService.getUserById(playerId).getUsername());
             snake.setDirection(direction);
@@ -181,20 +182,6 @@ public class GameService {
     }
 
     private void updateGameState(Game game) {
-//        List<Snake> toRemove = new ArrayList<>();
-//        for (Snake snake : game.getSnakes()) {
-//            if (snake.getCoordinates() == null) {
-//                continue; // already dead
-//            }
-//            snake.moveSnake();
-//            if (Snake.checkCollision(snake, game)) {
-//                toRemove.add(snake);
-//            }
-//        }
-//        for (Snake snake : toRemove) {
-//            game.getSnakes().remove(snake);
-//        }
-        
         for (Snake snake : game.getSnakes()) {
             if (snake.getCoordinates().length == 0) {
                 continue; // already dead

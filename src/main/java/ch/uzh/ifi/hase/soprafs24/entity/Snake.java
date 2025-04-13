@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs24.entity;
 
 public class Snake {
+    private Game game;
     private int length;
     private int[][] coordinates;
     private String direction;
@@ -8,6 +9,9 @@ public class Snake {
     private int[] tail;
     private Long userId;
     private String username;
+
+    public Game getGame() {return game;}
+    public void setGame(Game game) {this.game = game;}
 
     public String getUsername() {
         return username;
