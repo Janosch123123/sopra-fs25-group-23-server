@@ -117,7 +117,7 @@ public class GameService {
             catch (IOException e) {throw new RuntimeException(e);}
             while (!game.isGameOver()) {
                 updateGameState(game);
-                game.setTimestamp(game.getTimestamp()-1);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
+                game.setTimestamp(game.getTimestamp()-0.25f);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
                 try {
                     broadcastGameState(game); // Sendet Spielzustand an alle WebSocket-Clients
                 }
@@ -125,7 +125,7 @@ public class GameService {
                     throw new RuntimeException(e);
                 }
                 try {
-                    Thread.sleep(2000); // Wartezeit für den nächsten Loop (z. B. 100ms pro Frame)
+                    Thread.sleep(250); // Wartezeit für den nächsten Loop (z. B. 100ms pro Frame)
                 }
                 catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -186,7 +186,7 @@ public class GameService {
             if (snake.getCoordinates().length == 0) {
                 continue; // already dead
             }
-            updateSnakeDirection(game); // Pass game parameter here
+            updateSnakeDirection(game); // checks for direction changes in queue
             snakeService.moveSnake(snake);
 
             if (snakeService.checkCollision(snake, game)) {
@@ -213,8 +213,8 @@ public class GameService {
         int y = 0;
         while (occupied) {
             occupied = false;
-            x = random.nextInt(20) + 1; // 1 bis 20
-            y = random.nextInt(20) + 1; // 1 bis 20
+            x = random.nextInt(30); // 1 bis 20
+            y = random.nextInt(25); // 1 bis 20
             for (Snake snake : game.getSnakes()){
                 for (int[] coordinate : snake.getCoordinates())
                     if (coordinate[0] == x && coordinate[1] == y) {
