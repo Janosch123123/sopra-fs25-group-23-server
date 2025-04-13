@@ -111,6 +111,9 @@ public class GameService {
 
     public void start(Game game) {
         new Thread(() -> { // Startet die Game-Loop in einem eigenen Thread
+
+            try {startCountdown(game, 5);}
+            catch (IOException e) {throw new RuntimeException(e);}
             while (!game.isGameOver()) {
                 updateGameState(game);
                 game.setTimestamp(game.getTimestamp()-1);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
@@ -241,6 +244,42 @@ public class GameService {
         for (Snake snake : game.getSnakes()) {
             if (snake.getUserId().equals(user.getId())) {
                 snake.setDirection(direction);
+            }
+        }
+    }
+    private void startCountdown(Game game, int seconds) throws IOException {
+        for (int i = seconds; i > 0; i--) {
+            logger.info("Broadcasting countdown for game: {}", game.getGameId());
+            ObjectNode message = mapper.createObjectNode();
+            message.put("type", "preGame");
+            message.put("countdown", i);
+            Map<String, Object> snakesDictionary = new HashMap<>();
+            for (Snake snake : game.getSnakes()) {
+                String username = snake.getUsername(); // Benutzername als Key
+                snakesDictionary.put(username, snake.getCoordinates());
+            }
+            // Füge die strukturierte Map dem JSON-Objekt hinzu
+            message.set("snakes", mapper.valueToTree(snakesDictionary));
+            // Extrahiere die Cookies aus der Items-Liste (alle Items mit type "cookie")
+            List<int[]> cookiePositions = new ArrayList<>();
+            for (Item item : game.getItems()) {
+                if ("cookie".equals(item.getType())) { // Prüfen, ob Item-Typ "cookie" ist
+                    cookiePositions.add(item.getPosition()); // Position hinzufügen
+                }
+            }
+            // Füge die Cookie-Positionen zu den JSON-Daten hinzu
+            message.set("cookies", mapper.valueToTree(cookiePositions));
+
+            WebSocketHandler webSocketHandler = getWebSocketHandler();
+            webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
+
+            // Warte 1 Sekunde vor der nächsten Iteration
+            try {
+                Thread.sleep(1000); // 1000 Millisekunden = 1 Sekunde
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.error("Countdown wurde unterbrochen: {}", e.getMessage());
+                break; // Beende die Schleife bei Unterbrechung
             }
         }
     }
