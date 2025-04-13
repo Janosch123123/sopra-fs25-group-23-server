@@ -146,7 +146,7 @@ public class GameService {
         }
         // Füge die strukturierte Map dem JSON-Objekt hinzu
         message.set("snakes", mapper.valueToTree(snakesDictionary));
-// Extrahiere die Cookies aus der Items-Liste (alle Items mit type "cookie")
+        // Extrahiere die Cookies aus der Items-Liste (alle Items mit type "cookie")
         List<int[]> cookiePositions = new ArrayList<>();
         for (Item item : game.getItems()) {
             if ("cookie".equals(item.getType())) { // Prüfen, ob Item-Typ "cookie" ist
