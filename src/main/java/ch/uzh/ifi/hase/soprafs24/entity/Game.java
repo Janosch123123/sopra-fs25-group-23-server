@@ -80,10 +80,14 @@ public class Game {
         // zählen wieviele Spieler noch leben!
         int alives = 0;
         for (Snake snake : snakes) {
-            if (snake.getCoordinates() != null) {
+            int[][] coordinates = snake.getCoordinates();
+            // Überprüfe, ob das Array null ist oder leer ist
+            if (coordinates != null && coordinates.length > 0) {
                 alives++;
             }
         }
-        return false; // Game is over when 0 or 1 players remain
+        // Game is over when no players have "alive" coordinates
+        return alives < 1;
     }
+
 }
