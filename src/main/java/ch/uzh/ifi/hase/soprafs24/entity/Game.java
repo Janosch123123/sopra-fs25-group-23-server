@@ -86,8 +86,8 @@ public class Game {
                 alives++;
             }
         }
-        // Game is over when no players have "alive" coordinates
-        return alives < 1;
+        // Game is over when no players have "alive" coordinates OR timer runs out!
+        return alives < 1 || timestamp <= 0;
     }
 
 }
