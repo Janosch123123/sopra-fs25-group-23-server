@@ -226,6 +226,12 @@ public class GameService {
                         break;
                 }
             }
+            for (Item item: game.getItems()) {
+                if (item.getPosition()[0] == x && item.getPosition()[1] == y) {
+                    occupied = true;
+                    break;
+                }
+            }
 
         }
         Item item = new Item(new int[]{x, y}, "cookie");
