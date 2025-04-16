@@ -112,7 +112,6 @@ public class GameService {
 
     public void start(Game game) {
         new Thread(() -> { // Startet die Game-Loop in einem eigenen Thread
-
             try {startCountdown(game, 5);}
             catch (IOException e) {throw new RuntimeException(e);}
             while (!game.isGameOver()) {
@@ -122,17 +121,16 @@ public class GameService {
                     broadcastGameState(game); // Sendet Spielzustand an alle WebSocket-Clients
                 }
                 catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                    throw new RuntimeException(e);}
                 try {
                     Thread.sleep(250); // Wartezeit für den nächsten Loop (z. B. 100ms pro Frame)
                 }
                 catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    break;
-                }
+                    break;}
             }
-            endGame(game); // Cleanup, wenn das Spiel vorbei ist
+            try {endGame(game); } // send winner to FE etc//
+            catch (IOException e) {throw new RuntimeException(e);}
         }).start();
     }
 
@@ -177,8 +175,14 @@ public class GameService {
 //        }
     }
 
-    private void endGame(Game game) {
-        // was soll da passieren?
+    private void endGame(Game game) throws IOException {
+        logger.info("Ending game: {}", game.getGameId());
+        ObjectNode message = mapper.createObjectNode();
+        message.put("type", "gameEnd");
+        message.put("winner","always Marc");
+        message.put("reason","he is the best");
+        WebSocketHandler webSocketHandler = getWebSocketHandler();
+        webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
     }
 
     private void updateGameState(Game game) {
@@ -220,6 +224,12 @@ public class GameService {
                     if (coordinate[0] == x && coordinate[1] == y) {
                         occupied = true;
                         break;
+                }
+            }
+            for (Item item: game.getItems()) {
+                if (item.getPosition()[0] == x && item.getPosition()[1] == y) {
+                    occupied = true;
+                    break;
                 }
             }
 

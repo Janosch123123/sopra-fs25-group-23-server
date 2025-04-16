@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import ch.uzh.ifi.hase.soprafs24.entity.Game;
 import ch.uzh.ifi.hase.soprafs24.entity.Snake;
 
+import java.util.Arrays; 
+
 @Service
 @Transactional
 public class SnakeSerivce {
@@ -90,13 +92,13 @@ public class SnakeSerivce {
                 continue;
             }
             // check if the snake is colliding with itself or someone else
-            for (int i = 0; i < snake.getLength(); i++) {
+            for (int i = 0; i < otherSnake.getCoordinates().length; i++) {
                 // dont check your own head with your own head
                 if (snake == otherSnake && i == 0) {
                     continue;
                 }
-                
-                if (head == otherSnake.getCoordinates()[i]) {
+                if (Arrays.equals(head, otherSnake.getCoordinates()[i])) {
+                    System.out.println("Collision detected: " + head[0] + ", " + head[1]);
                     return true;
                 }
             }
