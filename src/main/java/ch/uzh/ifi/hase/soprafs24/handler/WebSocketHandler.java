@@ -24,6 +24,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+
+
 
 import static ch.uzh.ifi.hase.soprafs24.service.LobbyService.getGameByLobby;
 
@@ -277,8 +280,34 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        // Find which user this session belongs to before removing it
+        Long userId = null;
+        
+        // Iterate through the userSessions map to find which user has this session
+        for (Map.Entry<Long, WebSocketSession> entry : userSessions.entrySet()) {
+            if (session.equals(entry.getValue())) {
+                userId = entry.getKey();
+                break;
+            }
+        }
+        
+        if (userId != null) {
+            // Use the LobbyService to find the lobby
+            Lobby userLobby = lobbyService.findLobbyForUser(userId);
+            
+            if (userLobby != null) {
+                // Remove user from the lobby's participants
+                userLobby.removeParticipantId(userId);
+                
+                // Use the LobbyService to save the updated lobby
+                lobbyService.updateLobby(userLobby);
+                
+                sendLobbyStateToUsers(userLobby.getId());   
+                logger.info("User {} removed from lobby {}", userId, userLobby.getId());
+            }
+        }
+        
         userSessions.entrySet().removeIf(entry -> entry.getValue().equals(session));
-        // This method is called when the WebSocket connection is closed
         logger.info("WebSocket connection closed: {} with status {}", session.getId(), status);
     }
 
