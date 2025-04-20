@@ -15,6 +15,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 @Service
 @Transactional
@@ -125,4 +126,40 @@ public class LobbyService {
         user.setLobbyCode(lobbyCode);
         userRepository.save(user);
     }
+
+     /**
+     * Find the lobby that a user is participating in
+     * @param userId The ID of the user
+     * @return The Lobby object or null if not found
+     */
+    public Lobby findLobbyForUser(Long userId) {
+        List<Lobby> lobbies = lobbyRepository.findAll();
+        
+        for (Lobby lobby : lobbies) {
+            if (lobby.getParticipantIds().contains(userId)) {
+                return lobby;
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Updates an existing lobby
+     * 
+     * @param lobby the lobby to update
+     * @return the updated lobby
+     */
+    public Lobby updateLobby(Lobby lobby) {
+        if (lobby == null) {
+            throw new IllegalArgumentException("Lobby cannot be null");
+        }
+        
+        // Verify the lobby exists
+        lobbyRepository.findById(lobby.getId())
+            .orElseThrow(() -> new IllegalArgumentException("Lobby not found with ID: " + lobby.getId()));
+        
+        return lobbyRepository.save(lobby);
+    }
+
 }
