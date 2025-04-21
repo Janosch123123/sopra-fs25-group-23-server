@@ -176,6 +176,14 @@ public class GameService {
     }
 
     private void endGame(Game game) throws IOException {
+        String winnerName = game.getWinner();
+        if (winnerName != null) {
+            User winner = userRepository.findByUsername(winnerName);
+            winner.setWins(winner.getWins()+1);
+            userRepository.save(winner);
+            logger.info("User {} won the game!", winnerName);
+        }
+
         logger.info("Ending game: {}", game.getGameId());
         ObjectNode message = mapper.createObjectNode();
         message.put("type", "gameEnd");
@@ -186,10 +194,12 @@ public class GameService {
     }
 
     private void updateGameState(Game game) {
+        List<Snake> aliveSnakes = new ArrayList<>();
         for (Snake snake : game.getSnakes()) {
             if (snake.getCoordinates().length == 0) {
                 continue; // already dead
             }
+            aliveSnakes.add(snake);
             updateSnakeDirection(game); // checks for direction changes in queue
             snakeService.moveSnake(snake);
 
@@ -197,10 +207,11 @@ public class GameService {
                 // Snake has collided with another snake
                 logger.info("Collision detected for snake: {}", snake.getUserId());
                 snake.setCoordinates(new int[0][0]); // Set coordinates to empty to mark as dead
-                if (game.isGameOver()){
-                    game.setWinner(snake.getUsername());
-                }
             }
+        }
+        if (aliveSnakes.size() == 1) {
+            Snake winnerSnake = aliveSnakes.get(0);
+            game.setWinner(winnerSnake.getUsername());
         }
 
 
