@@ -179,8 +179,8 @@ public class GameService {
         logger.info("Ending game: {}", game.getGameId());
         ObjectNode message = mapper.createObjectNode();
         message.put("type", "gameEnd");
-        message.put("winner","always Marc");
-        message.put("reason","he is the best");
+        message.put("winner",game.getWinner());  // We need a way to track the winner.
+        message.put("reason","Last survivor");
         WebSocketHandler webSocketHandler = getWebSocketHandler();
         webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
     }
@@ -197,6 +197,9 @@ public class GameService {
                 // Snake has collided with another snake
                 logger.info("Collision detected for snake: {}", snake.getUserId());
                 snake.setCoordinates(new int[0][0]); // Set coordinates to empty to mark as dead
+                if (game.isGameOver()){
+                    game.setWinner(snake.getUsername());
+                }
             }
         }
 
