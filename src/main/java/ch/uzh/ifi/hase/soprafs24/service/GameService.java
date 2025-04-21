@@ -176,12 +176,26 @@ public class GameService {
     }
 
     private void endGame(Game game) throws IOException {
+        // update winning stats
         String winnerName = game.getWinner();
         if (winnerName != null) {
             User winner = userRepository.findByUsername(winnerName);
             winner.setWins(winner.getWins()+1);
             userRepository.save(winner);
             logger.info("User {} won the game!", winnerName);
+        }
+        //update level stats
+        for (Long playerId : game.getLobby().getParticipantIds()) {
+            Optional<User> currentUser = userRepository.findById(playerId);
+            if (currentUser.isPresent()) {
+                User user = currentUser.get();
+                int newLevel = user.getWins()/2 + user.getKills()/4;
+                user.setLevel(newLevel);
+                userRepository.save(user);
+                logger.info("User {} reached level {}!", user.getUsername(), user.getLevel());
+            } else {
+                logger.error("User {} not found!", playerId);
+            }
         }
 
         logger.info("Ending game: {}", game.getGameId());
