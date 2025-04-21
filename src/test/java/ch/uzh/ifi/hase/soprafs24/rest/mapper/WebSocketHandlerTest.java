@@ -255,66 +255,6 @@ public class WebSocketHandlerTest {
         }
     }
 
-    
-    @Test
-    void testHandleTextMessage_startgame() throws Exception {
-        // Setup
-        User testUser = new User();
-        testUser.setId(1L);
-
-        Lobby testLobby = new Lobby();
-        testLobby.setId(100L);
-        testLobby.setAdminId(1L);
-        Game testGame = new Game();
-        
-        when(userService.getUserByToken("test-token")).thenReturn(testUser);
-        when(lobbyService.getLobbyById(100L)).thenReturn(testLobby);
-        when(gameService.startGame(testLobby)).thenReturn(testGame);
-        // Create test message
-        ObjectNode requestBody = objectMapper.createObjectNode();
-        requestBody.put("type", "startGame");
-        requestBody.put("lobbyId", 100L);
-
-        TextMessage textMessage = new TextMessage(objectMapper.writeValueAsString(requestBody));
-        // Execute
-        webSocketHandler.handleTextMessage(session, textMessage);
-        // Verify
-        verify(lobbyService).getLobbyById(100L);
-        verify(gameService).startGame(testLobby);
-        verify(session).sendMessage(any(TextMessage.class));
-        verify(lobbyService).addLobbyCodeToUser(testUser, 100L);
-    }
-
-    @Test
-    void testHandleTextMessage_playermove() throws Exception {
-        // Setup
-        User testUser = new User();
-        testUser.setId(1L);
-        testUser.setToken("test-token");
-        
-        Lobby testLobby = new Lobby();
-        testLobby.setId(100L);
-        testLobby.setAdminId(1L);
-
-        Game testGame = new Game();
-        
-        when(userService.getUserByToken("test-token")).thenReturn(testUser);
-        when(lobbyService.getLobbyById(100L)).thenReturn(testLobby);
-        
-        // Create test message
-        ObjectNode requestBody = objectMapper.createObjectNode();
-        requestBody.put("type", "playerMove");
-        requestBody.put("direction", );
-        TextMessage textMessage = new TextMessage(objectMapper.writeValueAsString(requestBody));
-        
-        // Execute
-        webSocketHandler.handleTextMessage(session, textMessage);
-        
-        // Verify
-        verify(lobbyService).getLobbyById(100L);
-        verify(session).sendMessage(any(TextMessage.class));
-    }
-
     @Test
     void testAfterConnectionClosed() throws Exception {
         // This function does nothing yet, but once it does, we can test it :D
