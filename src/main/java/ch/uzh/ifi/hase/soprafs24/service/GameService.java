@@ -176,20 +176,44 @@ public class GameService {
     }
 
     private void endGame(Game game) throws IOException {
+        // update winning stats
+        String winnerName = game.getWinner();
+        if (winnerName != null) {
+            User winner = userRepository.findByUsername(winnerName);
+            winner.setWins(winner.getWins()+1);
+            userRepository.save(winner);
+            logger.info("User {} won the game!", winnerName);
+        }
+        //update level stats
+        for (Long playerId : game.getLobby().getParticipantIds()) {
+            Optional<User> currentUser = userRepository.findById(playerId);
+            if (currentUser.isPresent()) {
+                User user = currentUser.get();
+                int newLevel = user.getWins()/2 + user.getKills()/4;
+                user.setLevel(newLevel);
+                userRepository.save(user);
+                logger.info("User {} reached level {}!", user.getUsername(), user.getLevel());
+            } else {
+                logger.error("User {} not found!", playerId);
+            }
+        }
+
         logger.info("Ending game: {}", game.getGameId());
         ObjectNode message = mapper.createObjectNode();
         message.put("type", "gameEnd");
-        message.put("winner","always Marc");
-        message.put("reason","he is the best");
+        message.put("winner",game.getWinner());  // We need a way to track the winner.
+        message.put("reason","Last survivor");
         WebSocketHandler webSocketHandler = getWebSocketHandler();
         webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
     }
 
     private void updateGameState(Game game) {
+        List<Snake> aliveSnakes = new ArrayList<>();
         for (Snake snake : game.getSnakes()) {
             if (snake.getCoordinates().length == 0) {
                 continue; // already dead
             }
+            aliveSnakes.add(snake);
             updateSnakeDirection(game); // checks for direction changes in queue
             snakeService.moveSnake(snake);
 
@@ -198,6 +222,10 @@ public class GameService {
                 logger.info("Collision detected for snake: {}", snake.getUserId());
                 snake.setCoordinates(new int[0][0]); // Set coordinates to empty to mark as dead
             }
+        }
+        if (aliveSnakes.size() == 1) {
+            Snake winnerSnake = aliveSnakes.get(0);
+            game.setWinner(winnerSnake.getUsername());
         }
 
 

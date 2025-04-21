@@ -3,6 +3,8 @@ package ch.uzh.ifi.hase.soprafs24.service;
 import javax.transaction.Transactional;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Item;
+import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Game;
@@ -14,6 +16,11 @@ import java.util.Arrays;
 @Transactional
 public class SnakeSerivce {
 
+    private final UserRepository userRepository;
+
+    public SnakeSerivce(UserService userService, UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public void moveSnake(Snake snake) {
         int[][] coordinates = snake.getCoordinates();
@@ -98,6 +105,13 @@ public class SnakeSerivce {
                     continue;
                 }
                 if (Arrays.equals(head, otherSnake.getCoordinates()[i])) {
+                    // updating kill count for the snake who killed this snake
+                    if (snake != otherSnake) { // if it did not collide in itself
+                        String snakeName = otherSnake.getUsername();
+                        User killer = userRepository.findByUsername(snakeName);
+                        killer.setKills(killer.getKills()+1);
+                    }
+
                     System.out.println("Collision detected: " + head[0] + ", " + head[1]);
                     return true;
                 }

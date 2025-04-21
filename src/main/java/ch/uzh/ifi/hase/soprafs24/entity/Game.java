@@ -12,6 +12,7 @@ public class Game {
     private List<Item> items;
     private float timestamp;
     private boolean gameOver;
+    private String winner;
 
     public Game() {
         this.gameId = generateUniqueGameId();
@@ -19,6 +20,7 @@ public class Game {
         this.items = new ArrayList<>(); // Initialize the items list
         this.gameOver = false; // Initialize gameOver flag
         this.timestamp = 180;
+        this.winner = null;
     }
     public float getTimestamp() {return timestamp;}
     public void setTimestamp(float timestamp) {this.timestamp = timestamp;}
@@ -27,6 +29,8 @@ public class Game {
         idCounter++; // Zähler wird inkrementiert
         return idCounter;
     }
+    public String getWinner() {return winner;}
+    public void setWinner(String winner) {this.winner = winner;}
 
     public long getGameId() {
         return gameId;

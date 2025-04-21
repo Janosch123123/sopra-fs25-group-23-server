@@ -304,6 +304,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 
                 sendLobbyStateToUsers(userLobby.getId());   
                 logger.info("User {} removed from lobby {}", userId, userLobby.getId());
+
+                // Also remove LobbyCode in User entity
+                User user = userService.getUserById(userId);
+                user.setLobbyCode(0);
+
+                // save updated user
+                userRepository.save(user);
             }
         }
         
