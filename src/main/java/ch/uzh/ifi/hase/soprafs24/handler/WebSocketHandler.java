@@ -315,7 +315,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
 
-    private void sendLobbyStateToUsers(Long lobbyCode) throws IOException {
+    public void sendLobbyStateToUsers(Long lobbyCode) throws IOException {
         // Get the lobby
         Lobby lobby = lobbyService.getLobbyById(lobbyCode);
         if (lobby == null) {

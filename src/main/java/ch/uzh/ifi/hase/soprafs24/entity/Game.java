@@ -32,6 +32,10 @@ public class Game {
         return gameId;
     }
 
+    public void setGameId(long gameId) {
+        this.gameId = gameId;
+    }
+
     public Lobby getLobby() {
         return lobby;
     }
