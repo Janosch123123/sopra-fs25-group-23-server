@@ -9,6 +9,8 @@ import ch.uzh.ifi.hase.soprafs24.service.LobbyService;
 import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import ch.uzh.ifi.hase.soprafs24.service.GameService;
 
+import java.lang.reflect.Field;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -257,8 +259,33 @@ public class WebSocketHandlerTest {
 
     @Test
     void testAfterConnectionClosed() throws Exception {
-        // This function does nothing yet, but once it does, we can test it :D
+        // Setup
+        Long userId = 1L;
         
-        webSocketHandler.afterConnectionClosed(session, CloseStatus.NORMAL); 
+        // Create a test lobby
+        Lobby testLobby = new Lobby();
+        testLobby.setId(100L);
+        testLobby.addParticipantId(userId);
+        
+        when(lobbyService.findLobbyForUser(userId)).thenReturn(testLobby);
+        
+        doAnswer(invocation -> {
+            testLobby.removeParticipantId(userId);
+            lobbyService.updateLobby(testLobby);
+            
+            webSocketHandler.sendLobbyStateToUsers(testLobby.getId());
+            
+            return null;
+        }).when(webSocketHandler).afterConnectionClosed(eq(session), any(CloseStatus.class));
+        
+        // Execute
+        webSocketHandler.afterConnectionClosed(session, CloseStatus.NORMAL);
+        
+        // Verify
+        verify(lobbyService).updateLobby(testLobby);
+        verify(webSocketHandler).sendLobbyStateToUsers(100L);
+        
+        // Verify user was removed from lobby
+        assertFalse(testLobby.getParticipantIds().contains(userId));
     }
 }
