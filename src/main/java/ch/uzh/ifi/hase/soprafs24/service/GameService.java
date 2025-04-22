@@ -175,7 +175,7 @@ public class GameService {
 //        }
     }
 
-    private void endGame(Game game) throws IOException {
+    public void endGame(Game game) throws IOException {
         // update winning stats
         String winnerName = game.getWinner();
         if (winnerName != null) {
