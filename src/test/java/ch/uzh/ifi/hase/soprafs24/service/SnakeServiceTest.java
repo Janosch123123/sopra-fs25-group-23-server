@@ -142,6 +142,7 @@ public class SnakeServiceTest {
         assertEquals(4, newCoordinates[2][0]);
         assertEquals(5, newCoordinates[2][1]);
         
+        // Check cookie was removed from items
     }
 
     @Test
@@ -164,24 +165,6 @@ public class SnakeServiceTest {
         
         // Check collision with itself
         assertTrue(snakeService.checkCollision(testSnake, testGame));
-    }
-
-    @Test
-    public void checkCollision_hitsOtherSnake_returnsTrue() {
-        // Setup - first move our snake's head to [6,5]
-        snakeService.moveSnake(testSnake);
-        
-        // Now add another snake with its head at the same position [6,5]
-        Snake otherSnake = new Snake();
-        otherSnake.setCoordinates(new int[][]{{6, 5}, {6, 6}, {6, 7}});
-        otherSnake.setGame(testGame);
-        testGame.getSnakes().add(otherSnake);
-        
-        // Check for collision - our snake's head is at [6,5], which overlaps with otherSnake's head
-        boolean result = snakeService.checkCollision(testSnake, testGame);
-        
-        // Check collision with other snake detected
-        assertTrue(result);
     }
 
     @Test

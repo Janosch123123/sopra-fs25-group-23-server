@@ -18,7 +18,7 @@ public class SnakeService {
 
     private final UserRepository userRepository;
 
-    public SnakeSerivce(UserService userService, UserRepository userRepository) {
+    public SnakeService(UserService userService, UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
