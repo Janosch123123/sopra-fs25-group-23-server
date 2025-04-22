@@ -28,7 +28,7 @@ public class GameService {
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
     private final UserService userService;
-    private final SnakeSerivce snakeService;
+    private final SnakeService snakeService;
     private final ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(GameService.class);
     
@@ -37,7 +37,7 @@ public class GameService {
 
     @Autowired
     public GameService(LobbyRepository lobbyRepository, UserRepository userRepository,
-                      UserService userService, ApplicationContext applicationContext, SnakeSerivce snakeService) {
+                      UserService userService, ApplicationContext applicationContext, SnakeService snakeService) {
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
         this.userService = userService;

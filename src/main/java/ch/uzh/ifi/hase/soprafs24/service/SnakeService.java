@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 @Service
 @Transactional
-public class SnakeSerivce {
+public class SnakeService {
 
 
     public void moveSnake(Snake snake) {
