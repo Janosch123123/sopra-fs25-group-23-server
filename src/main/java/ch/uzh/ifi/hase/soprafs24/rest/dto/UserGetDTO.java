@@ -16,6 +16,10 @@ public class UserGetDTO {
   private int level;
   private int lobbyCode;
   private int playedGames;
+  private int lengthPR;
+
+  public int getLengthPR() {return lengthPR;}
+  public void setLengthPR(int lengthPR) {this.lengthPR = lengthPR;}
 
   public int getPlayedGames() {return playedGames;}
   public void setPlayedGames(int playedGames) {this.playedGames = playedGames;}

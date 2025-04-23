@@ -364,7 +364,7 @@ public class GameService {
             }
         }
     }
-    public static void rankRemainingPlayers(Game game) {
+    public void rankRemainingPlayers(Game game) {
         List<Snake> remainingPlayers = new ArrayList<>();
 
         for (Snake snake : game.getSnakes()) {
@@ -381,6 +381,12 @@ public class GameService {
         Collections.reverse(remainingPlayers);
         for (Snake player : remainingPlayers){
             game.addLeaderboardEntry(player.getUsername());
+            User user = userRepository.findByUsername(player.getUsername());
+            if (user.getLengthPR() < player.getCoordinates().length) {
+                user.setLengthPR(player.getCoordinates().length);
+                userRepository.save(user);
+                userRepository.flush();
+            }
         }
 
     }

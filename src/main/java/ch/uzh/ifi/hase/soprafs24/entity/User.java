@@ -56,6 +56,12 @@ public class User implements Serializable {
   @Column
   private int playedGames;
 
+  @Column
+  private int lengthPR;
+
+  public int getLengthPR() {return lengthPR;}
+  public void setLengthPR(int lengthPR) {this.lengthPR = lengthPR;}
+
   public int getPlayedGames() {return playedGames;}
   public void setPlayedGames(int playedGames) {this.playedGames = playedGames;}
 
