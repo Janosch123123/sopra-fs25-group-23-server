@@ -4,12 +4,19 @@ import javax.transaction.Transactional;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Item;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.handler.WebSocketHandler;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
+
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Game;
 import ch.uzh.ifi.hase.soprafs24.entity.Snake;
 
+import java.io.IOException;
 import java.util.Arrays; 
 
 @Service
@@ -18,8 +25,17 @@ public class SnakeService {
 
     private final UserRepository userRepository;
 
-    public SnakeService(UserService userService, UserRepository userRepository) {
+/////
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    private final ApplicationContext applicationContext;
+
+/////
+    public SnakeService(UserService userService, UserRepository userRepository, ApplicationContext applicationContext) {
         this.userRepository = userRepository;
+        //
+        this.applicationContext = applicationContext;
+        //
     }
 
     public void moveSnake(Snake snake) {
@@ -112,6 +128,21 @@ public class SnakeService {
                         killer.setKills(killer.getKills()+1);
                     }
 
+                    ///// TO REMOVE
+                    ObjectNode message = mapper.createObjectNode();
+                    message.put("type", "playerDied");
+                    message.put("coordinates",mapper.valueToTree(snake.getCoordinates()));
+                    WebSocketHandler webSocketHandler = getWebSocketHandler();
+                    try {
+                        System.out.println("Sending message to lobby: " + game.getLobby().getId());
+                        webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                        System.out.println("Error sending message to lobby: " + game.getLobby().getId());
+                    }
+
+                    /////
                     System.out.println("Collision detected: " + head[0] + ", " + head[1]);
                     return true;
                 }
@@ -119,4 +150,11 @@ public class SnakeService {
         }
         return false;
     }
+
+    //JUST FOR DEBUGGING
+    private WebSocketHandler getWebSocketHandler() {
+        return applicationContext.getBean(WebSocketHandler.class);
+    }
+    //////
+
 }
