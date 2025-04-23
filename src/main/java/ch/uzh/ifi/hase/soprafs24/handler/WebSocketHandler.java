@@ -101,7 +101,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
             WebSocketSession individualSession = getSessionByUserId(id);
             try {
                 if (individualSession != null && individualSession.isOpen()) {
-                    individualSession.sendMessage(new TextMessage(mapper.writeValueAsString(updateMessage)));
+                    synchronized (individualSession) {
+                        individualSession.sendMessage(new TextMessage(mapper.writeValueAsString(updateMessage)));
+                    }
                 }
             } catch (IOException e) {
                 logger.error("Error sending message to user {}", id, e);
