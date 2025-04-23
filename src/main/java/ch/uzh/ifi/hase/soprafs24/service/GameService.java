@@ -17,6 +17,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 import static ch.uzh.ifi.hase.soprafs24.service.LobbyService.putGameToLobby;
@@ -197,11 +198,11 @@ public class GameService {
                 logger.error("User {} not found!", playerId);
             }
         }
-
+        List<String> leaderboard = game.getLeaderboard();
         logger.info("Ending game: {}", game.getGameId());
         ObjectNode message = mapper.createObjectNode();
         message.put("type", "gameEnd");
-        message.put("winner",game.getWinner());  // We need a way to track the winner.
+        message.put("rank", mapper.valueToTree(leaderboard));
         message.put("reason","Last survivor");
         WebSocketHandler webSocketHandler = getWebSocketHandler();
         webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
@@ -221,6 +222,7 @@ public class GameService {
                 // Snake has collided with another snake
                 logger.info("Collision detected for snake: {}", snake.getUserId());
                 snake.setCoordinates(new int[0][0]); // Set coordinates to empty to mark as dead
+                game.addLeaderboardEntry(snake.getUsername());
             }
         }
         if (aliveSnakes.size() == 1) {
