@@ -177,7 +177,7 @@ public class GameServiceTest {
     @Test
     public void endGame_winnerExists_updatesStats() throws IOException {
         // Setup
-        testGame.setWinner("testUser1");
+        testGame.setLeaderboard(Arrays.asList(testUser1.getUsername()));
         
         // when
         gameService.endGame(testGame);
