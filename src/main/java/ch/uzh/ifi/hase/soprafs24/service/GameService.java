@@ -234,7 +234,7 @@ public class GameService {
         // Spawne ggf. neue Items (mit 25% Chance)
         Random random = new Random();
         double chance = random.nextDouble();
-        if (chance < 0.2) { // 20 % Chance
+        if (chance < 0.3) { // 20 % Chance
             spawnItem(game);
         }
     }
