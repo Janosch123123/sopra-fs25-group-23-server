@@ -57,3 +57,12 @@ jobs:
         platforms: linux/arm64/v8
         cache-from: type=registry,ref=${{secrets.dockerhub_username}}/${{secrets.dockerhub_repo_name}}:cache
         cache-to: type=inline,mode=max
+    
+    - name: Create build marker
+      run: echo "docker build complete" > done.txt
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-build-done
+        path: done.txt

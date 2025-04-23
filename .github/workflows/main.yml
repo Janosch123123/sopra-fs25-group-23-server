@@ -1,9 +1,10 @@
 name: Deploy Project to App Engine
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Dockerize"]
+    types:
+      - completed
 
   # run the workflow manually from the Actions tab
   workflow_dispatch:

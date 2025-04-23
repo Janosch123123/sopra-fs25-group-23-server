@@ -220,6 +220,7 @@ public class GameService {
             if (snakeService.checkCollision(snake, game)) {
                 // Snake has collided with another snake
                 logger.info("Collision detected for snake: {}", snake.getUserId());
+                spawnCookiesOnDeath(snake, game);
                 snake.setCoordinates(new int[0][0]); // Set coordinates to empty to mark as dead
             }
         }
@@ -235,6 +236,15 @@ public class GameService {
         double chance = random.nextDouble();
         if (chance < 0.2) { // 20 % Chance
             spawnItem(game);
+        }
+    }
+
+    private void spawnCookiesOnDeath(Snake snake, Game game) {
+        // Spawn cookies at the coordinates of the dead snake
+        int[][] coordinates = snake.getCoordinates();
+        for (int[] coordinate : coordinates) {
+            Item item = new Item(coordinate, "cookie");
+            game.addItem(item);
         }
     }
 
