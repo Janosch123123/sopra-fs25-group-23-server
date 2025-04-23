@@ -260,7 +260,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     gameService.respondToKeyInputs(game, user, direction);
 
                     ObjectNode keyChange = mapper.createObjectNode();
-                    keyChange.put("type", "direction changed based on keyInpurt to " + direction);
+                    keyChange.put("type", "direction changed based on keyInput to " + direction);
                     broadcastToLobby(lobbyCode, keyChange);
 
                 } catch (Exception e) {
