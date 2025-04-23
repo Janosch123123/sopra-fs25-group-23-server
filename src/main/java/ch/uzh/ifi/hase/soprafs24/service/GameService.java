@@ -243,8 +243,17 @@ public class GameService {
         // Spawn cookies at the coordinates of the dead snake
         int[][] coordinates = snake.getCoordinates();
         for (int[] coordinate : coordinates) {
-            Item item = new Item(coordinate, "cookie");
-            game.addItem(item);
+            boolean alreadyInGame = false;
+            for (Item itemAlreadyInGame : game.getItems()) {
+                if (Arrays.equals(itemAlreadyInGame.getPosition(), coordinate)) {
+                    alreadyInGame = true;
+                    break;
+                }
+            }
+            if (!alreadyInGame) {
+                Item item = new Item(coordinate, "cookie");
+                game.addItem(item);
+            }
         }
     }
 

@@ -149,7 +149,7 @@ public class GameServiceTest {
         testGame.addSnake(testSnake);
 
         // when
-        gameService.updateSnakeDirection(testGame);
+        gameService.updateSnakeDirection(testSnake);
 
         // then
         assertEquals("UP", testSnake.getDirection());
@@ -167,7 +167,7 @@ public class GameServiceTest {
         testGame.addSnake(testSnake);
 
         // when
-        gameService.updateSnakeDirection(testGame);
+        gameService.updateSnakeDirection(testSnake);
 
         // then
         assertEquals("RIGHT", testSnake.getDirection()); // Direction remains unchanged
