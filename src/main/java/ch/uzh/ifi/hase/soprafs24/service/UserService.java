@@ -48,6 +48,7 @@ public class UserService {
     newUser.setWins(0);
     newUser.setKills(0);
     newUser.setLevel(1);
+    newUser.setPlayedGames(0);
 
     checkIfUserExists(newUser);
 

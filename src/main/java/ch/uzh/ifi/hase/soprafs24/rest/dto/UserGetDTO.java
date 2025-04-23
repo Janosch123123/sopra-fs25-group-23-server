@@ -15,6 +15,10 @@ public class UserGetDTO {
   private int kills;
   private int level;
   private int lobbyCode;
+  private int playedGames;
+
+  public int getPlayedGames() {return playedGames;}
+  public void setPlayedGames(int playedGames) {this.playedGames = playedGames;}
 
   public int getLobbyCode() {return lobbyCode;}
   public void setLobbyCode(int lobbyCode) {this.lobbyCode = lobbyCode;}

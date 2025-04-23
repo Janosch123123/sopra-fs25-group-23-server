@@ -192,6 +192,7 @@ public class GameService {
             Optional<User> currentUser = userRepository.findById(playerId);
             if (currentUser.isPresent()) {
                 User user = currentUser.get();
+                user.setPlayedGames(user.getPlayedGames()+1);
                 int newLevel = user.getWins()/2 + user.getKills()/4 + 1;
                 user.setLevel(newLevel);
                 userRepository.save(user);

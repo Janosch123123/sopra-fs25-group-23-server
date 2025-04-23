@@ -53,6 +53,12 @@ public class User implements Serializable {
   @Column
   private long lobbyCode;
 
+  @Column
+  private int playedGames;
+
+  public int getPlayedGames() {return playedGames;}
+  public void setPlayedGames(int playedGames) {this.playedGames = playedGames;}
+
   public int getLevel() {
     return level;
   }
