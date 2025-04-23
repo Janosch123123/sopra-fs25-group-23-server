@@ -13,6 +13,7 @@ public class Game {
     private float timestamp;
     private boolean gameOver;
     private String winner;
+    private List<String> leaderboard;
 
     public Game() {
         this.gameId = generateUniqueGameId();
@@ -21,6 +22,7 @@ public class Game {
         this.gameOver = false; // Initialize gameOver flag
         this.timestamp = 180;
         this.winner = null;
+        this.leaderboard = new ArrayList<>();
     }
     public float getTimestamp() {return timestamp;}
     public void setTimestamp(float timestamp) {this.timestamp = timestamp;}
@@ -31,6 +33,10 @@ public class Game {
     }
     public String getWinner() {return winner;}
     public void setWinner(String winner) {this.winner = winner;}
+
+    public List<String> getLeaderboard() {return leaderboard;}
+    public void setLeaderboard(List<String> leaderboard) {this.leaderboard = leaderboard;}
+    public void addLeaderboardEntry(String entry) {this.leaderboard.add(0, entry);}
 
     public long getGameId() {
         return gameId;
