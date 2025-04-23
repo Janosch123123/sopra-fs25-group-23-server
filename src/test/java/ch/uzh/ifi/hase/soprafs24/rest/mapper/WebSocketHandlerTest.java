@@ -192,7 +192,7 @@ public class WebSocketHandlerTest {
         Game testGame = new Game();
         testGame.setGameId(200L);
         
-        when(gameService.createGame(testLobby)).thenReturn(testGame);
+        when(gameService.createGame(testLobby, "Medium")).thenReturn(testGame);
         when(userService.getUserByToken("test-token")).thenReturn(testUser);
         when(lobbyService.getLobbyById(100L)).thenReturn(testLobby);
 
@@ -200,13 +200,16 @@ public class WebSocketHandlerTest {
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("type", "startGame");
         requestBody.put("lobbyCode", 100L);
+        ObjectNode settings = objectMapper.createObjectNode();
+        settings.put("spawnRate", "Medium"); // Add spawnRate to settings
+        requestBody.set("settings", settings);
         TextMessage textMessage = new TextMessage(objectMapper.writeValueAsString(requestBody));
 
         // Execute
         webSocketHandler.handleTextMessage(session, textMessage);
 
         // Verify
-        verify(gameService).createGame(testLobby);
+        verify(gameService).createGame(testLobby, "Medium");
         verify(gameService).start(testGame);
     }
 

@@ -103,7 +103,7 @@ public class GameServiceTest {
     @Test
     public void createGame_validLobby_success() {
         // when
-        Game createdGame = gameService.createGame(testLobby);
+        Game createdGame = gameService.createGame(testLobby,"Medium");
 
         // then
         assertNotNull(createdGame);
@@ -222,7 +222,7 @@ public class GameServiceTest {
         when(userService.getUserById(4L)).thenReturn(createTestUser(4L, "testUser4"));
         
         // when
-        Game game = gameService.createGame(testLobby);
+        Game game = gameService.createGame(testLobby, "Medium");
         
         // then
         assertEquals(4, game.getSnakes().size());
