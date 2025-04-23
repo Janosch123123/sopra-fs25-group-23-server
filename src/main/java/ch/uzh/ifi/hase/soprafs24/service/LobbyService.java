@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 
@@ -111,6 +112,12 @@ public class LobbyService {
     public boolean validateLobby(long lobbyCode) {
         try {
             getLobbyById(lobbyCode);
+            Optional<Lobby> lobby = lobbyRepository.findById(lobbyCode);
+            if (lobby.isPresent()) {
+                Lobby foundLobby = lobby.get();
+                return foundLobby.getParticipantIds().size() <= 3;
+            }
+
             return true;
         } catch (Exception e) {
             log.error("Error validating lobby code: {}", e.getMessage());

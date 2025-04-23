@@ -174,6 +174,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     ObjectNode response = mapper.createObjectNode();
                     response.put("type", "validateLobbyResponse");
                     response.put("valid", isValid);
+                    if (!isValid){
+                        if (lobbyRepository.findById(lobbyCode).isPresent()) {
+                            response.put("reason", "full");
+                        }
+                        else{
+                            response.put("reason", "invalid");
+                        }
+                    }
                     if (isValid) {
                         lobbyService.addLobbyCodeToUser(user, lobbyCode);
 
