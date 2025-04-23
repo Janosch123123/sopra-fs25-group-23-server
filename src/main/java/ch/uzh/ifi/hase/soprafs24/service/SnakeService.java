@@ -128,21 +128,8 @@ public class SnakeService {
                         killer.setKills(killer.getKills()+1);
                     }
 
-                    ///// TO REMOVE
-                    ObjectNode message = mapper.createObjectNode();
-                    message.put("type", "playerDied");
-                    message.put("coordinates",mapper.valueToTree(snake.getCoordinates()));
-                    WebSocketHandler webSocketHandler = getWebSocketHandler();
-                    try {
-                        System.out.println("Sending message to lobby: " + game.getLobby().getId());
-                        webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                        System.out.println("Error sending message to lobby: " + game.getLobby().getId());
-                    }
+                    sendDeathMsg(snake, game);
 
-                    /////
                     System.out.println("Collision detected: " + head[0] + ", " + head[1]);
                     return true;
                 }
@@ -152,6 +139,23 @@ public class SnakeService {
     }
 
     //JUST FOR DEBUGGING
+
+    private void sendDeathMsg(Snake snake, Game game) {
+        ///// TO REMOVE
+        ObjectNode message = mapper.createObjectNode();
+        message.put("type", "playerDied");
+        message.put("coordinates",mapper.valueToTree(snake.getCoordinates()));
+        WebSocketHandler webSocketHandler = getWebSocketHandler();
+        try {
+            System.out.println("Sending message to lobby: " + game.getLobby().getId());
+            webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            System.out.println("Error sending message to lobby: " + game.getLobby().getId());
+        }
+        /////
+    }
     private WebSocketHandler getWebSocketHandler() {
         return applicationContext.getBean(WebSocketHandler.class);
     }
