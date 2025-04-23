@@ -214,7 +214,7 @@ public class GameService {
                 continue; // already dead
             }
             aliveSnakes.add(snake);
-            updateSnakeDirection(game); // checks for direction changes in queue
+            updateSnakeDirection(snake); // checks for direction changes in queue
             snakeService.moveSnake(snake);
 
             if (snakeService.checkCollision(snake, game)) {
@@ -293,19 +293,17 @@ public class GameService {
         }
     }
 
-    public void updateSnakeDirection(Game game) { 
-        for (Snake snake : game.getSnakes()) {
-            if (snake.getDirectionQueue().size() > 0) {
-                String newDirection = snake.popDirectionQueue();
-                if (newDirection.equals("UP") && !snake.getDirection().equals("DOWN")) {
-                    snake.setDirection(newDirection);
-                } else if (newDirection.equals("DOWN") && !snake.getDirection().equals("UP")) {
-                    snake.setDirection(newDirection);
-                } else if (newDirection.equals("LEFT") && !snake.getDirection().equals("RIGHT")) {
-                    snake.setDirection(newDirection);
-                } else if (newDirection.equals("RIGHT") && !snake.getDirection().equals("LEFT")) {
-                    snake.setDirection(newDirection);
-                }
+    public void updateSnakeDirection(Snake snake) {
+        if (snake.getDirectionQueue().size() > 0) {
+            String newDirection = snake.popDirectionQueue();
+            if (newDirection.equals("UP") && !snake.getDirection().equals("DOWN")) {
+                snake.setDirection(newDirection);
+            } else if (newDirection.equals("DOWN") && !snake.getDirection().equals("UP")) {
+                snake.setDirection(newDirection);
+            } else if (newDirection.equals("LEFT") && !snake.getDirection().equals("RIGHT")) {
+                snake.setDirection(newDirection);
+            } else if (newDirection.equals("RIGHT") && !snake.getDirection().equals("LEFT")) {
+                snake.setDirection(newDirection);
             }
         }
     }
