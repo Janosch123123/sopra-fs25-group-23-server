@@ -47,7 +47,7 @@ public class UserService {
     newUser.setCreationDate(new Date());
     newUser.setWins(0);
     newUser.setKills(0);
-    newUser.setLevel(0);
+    newUser.setLevel(1);
 
     checkIfUserExists(newUser);
 

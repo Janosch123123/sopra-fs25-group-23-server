@@ -91,8 +91,8 @@ public class GameService {
             String direction = switch (index % 4) {
                 case 0 -> "RIGHT";
                 case 1 -> "LEFT";
-                case 2 -> "UP";
-                case 3 -> "DOWN";
+                case 2 -> "DOWN";
+                case 3 -> "UP";
                 default -> "RIGHT";
             };
             
