@@ -44,7 +44,7 @@ public class GameService {
         this.applicationContext = applicationContext;
         this.snakeService = snakeService;
     }
-    
+
     // Add a method to get WebSocketHandler lazily when needed
     private WebSocketHandler getWebSocketHandler() {
         return applicationContext.getBean(WebSocketHandler.class);
@@ -116,14 +116,14 @@ public class GameService {
             catch (IOException e) {throw new RuntimeException(e);}
             while (!game.isGameOver()) {
                 updateGameState(game);
-                game.setTimestamp(game.getTimestamp()-0.25f);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
+                game.setTimestamp(game.getTimestamp()-0.20f);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
                 try {
                     broadcastGameState(game); // Sendet Spielzustand an alle WebSocket-Clients
                 }
                 catch (IOException e) {
                     throw new RuntimeException(e);}
                 try {
-                    Thread.sleep(250); // Wartezeit für den nächsten Loop (z. B. 100ms pro Frame)
+                    Thread.sleep(200); // Wartezeit für den nächsten Loop (z. B. 100ms pro Frame)
                 }
                 catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -176,6 +176,8 @@ public class GameService {
     }
 
     public void endGame(Game game) throws IOException {
+        rankRemainingPlayers(game);
+
         // update winning stats
         String winnerName = game.getWinner();
         if (winnerName != null) {
@@ -189,7 +191,7 @@ public class GameService {
             Optional<User> currentUser = userRepository.findById(playerId);
             if (currentUser.isPresent()) {
                 User user = currentUser.get();
-                int newLevel = user.getWins()/2 + user.getKills()/4;
+                int newLevel = user.getWins()/2 + user.getKills()/4 + 1;
                 user.setLevel(newLevel);
                 userRepository.save(user);
                 logger.info("User {} reached level {}!", user.getUsername(), user.getLevel());
@@ -342,6 +344,26 @@ public class GameService {
                 break; // Beende die Schleife bei Unterbrechung
             }
         }
+    }
+    public static void rankRemainingPlayers(Game game) {
+        List<Snake> remainingPlayers = new ArrayList<>();
+
+        for (Snake snake : game.getSnakes()) {
+            if (snake.getCoordinates().length == 0) {
+                continue;
+            } else {
+                remainingPlayers.add(snake);
+            }
+        }
+
+        // Sortiere remainingPlayers nach der Größe von snake.getCoordinates()
+        remainingPlayers.sort((s1, s2) -> Integer.compare(s2.getCoordinates().length, s1.getCoordinates().length));
+        // Liste umkehren
+        Collections.reverse(remainingPlayers);
+        for (Snake player : remainingPlayers){
+            game.
+        }
+
     }
 }
 
