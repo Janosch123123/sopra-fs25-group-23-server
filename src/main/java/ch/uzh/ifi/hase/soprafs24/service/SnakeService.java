@@ -127,6 +127,13 @@ public class SnakeService {
                         User killer = userRepository.findByUsername(snakeName);
                         killer.setKills(killer.getKills()+1);
                     }
+                    String username = snake.getUsername();
+                    User victim = userRepository.findByUsername(username);
+                    if (victim.getLengthPR() < snake.getCoordinates().length) {
+                        victim.setLengthPR(snake.getCoordinates().length);
+                        userRepository.save(victim);
+                        userRepository.flush();
+                    }
 
                     sendDeathMsg(snake, game);
 
