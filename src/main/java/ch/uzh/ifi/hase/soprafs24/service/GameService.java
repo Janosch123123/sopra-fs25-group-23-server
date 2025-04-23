@@ -180,7 +180,7 @@ public class GameService {
         rankRemainingPlayers(game);
 
         // update winning stats
-        String winnerName = game.getWinner();
+        String winnerName = game.getLeaderboard().get(0);
         if (winnerName != null) {
             User winner = userRepository.findByUsername(winnerName);
             winner.setWins(winner.getWins()+1);
@@ -363,7 +363,7 @@ public class GameService {
         // Liste umkehren
         Collections.reverse(remainingPlayers);
         for (Snake player : remainingPlayers){
-            game.
+            game.addLeaderboardEntry(player.getUsername());
         }
 
     }
