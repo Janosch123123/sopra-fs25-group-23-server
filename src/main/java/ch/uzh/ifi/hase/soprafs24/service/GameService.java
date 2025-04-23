@@ -193,9 +193,10 @@ public class GameService {
             if (currentUser.isPresent()) {
                 User user = currentUser.get();
                 user.setPlayedGames(user.getPlayedGames()+1);
-                int newLevel = user.getWins()/2 + user.getKills()/4 + 1;
+                int newLevel = user.getLevel() + (user.getWins() / 2) + (user.getKills() / 4);
                 user.setLevel(newLevel);
                 userRepository.save(user);
+                userRepository.flush();
                 logger.info("User {} reached level {}!", user.getUsername(), user.getLevel());
             } else {
                 logger.error("User {} not found!", playerId);
