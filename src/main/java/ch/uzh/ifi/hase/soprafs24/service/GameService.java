@@ -51,12 +51,18 @@ public class GameService {
         return applicationContext.getBean(WebSocketHandler.class);
     }
 
-    public Game createGame(Lobby lobby) {
+    public Game createGame(Lobby lobby, String cookieSpawnRate) {
         // Ensure we are working with a managed entity within the current transaction
         Lobby managedLobby = lobbyRepository.findById(lobby.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Lobby not found with ID: " + lobby.getId()));
         
         Game game = new Game();
+        switch (cookieSpawnRate) {
+            case "Slow" -> game.setCookieSpawnRate(0.1);
+            case "Medium" -> game.setCookieSpawnRate(0.3);
+            case "Fast" -> game.setCookieSpawnRate(0.5);
+            default -> game.setCookieSpawnRate(0.3); // Default to medium if invalid input
+        }
         game.setLobby(managedLobby);
         putGameToLobby(game, managedLobby.getId());
         
@@ -239,7 +245,7 @@ public class GameService {
         // Spawne ggf. neue Items (mit 25% Chance)
         Random random = new Random();
         double chance = random.nextDouble();
-        if (chance < 0.3) { // 20 % Chance
+        if (chance < game.getCookieSpawnRate()) { // 20 % Chance
             spawnItem(game);
         }
     }

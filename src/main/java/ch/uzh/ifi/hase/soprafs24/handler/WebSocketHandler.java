@@ -211,8 +211,16 @@ public class WebSocketHandler extends TextWebSocketHandler {
                         sendErrorMessage(session, "Invalid lobby ID");
                         return;
                     }
+                    JsonNode settingsNode = jsonNode.get("settings");
+                    String cookieSpawnRateNode;
+                    if (settingsNode != null && settingsNode.has("spawnRate")) {
+                        cookieSpawnRateNode = settingsNode.get("spawnRate").asText();
+                    } else {
+                        sendErrorMessage(session, "Invalid or missing cookieSpawnRate in settings");
+                        return;
+                    }
                     // Changed from static to instance method call
-                    Game game = gameService.createGame(lobby);
+                    Game game = gameService.createGame(lobby, cookieSpawnRateNode);
                     lobby.setGameId(game.getGameId());
                     lobbyRepository.save(lobby);
                     gameService.start(game);

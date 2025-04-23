@@ -14,6 +14,7 @@ public class Game {
     private boolean gameOver;
     private String winner;
     private List<String> leaderboard;
+    private double cookieSpawnRate;
 
     public Game() {
         this.gameId = generateUniqueGameId();
@@ -23,6 +24,7 @@ public class Game {
         this.timestamp = 180;
         this.winner = null;
         this.leaderboard = new ArrayList<>();
+        this.cookieSpawnRate = 0.3;
     }
     public float getTimestamp() {return timestamp;}
     public void setTimestamp(float timestamp) {this.timestamp = timestamp;}
@@ -102,6 +104,13 @@ public class Game {
         }
         // Game is over when no players have "alive" coordinates OR timer runs out!
         return alives < 1 || timestamp <= 0;
+    }
+
+    public double getCookieSpawnRate() {
+        return cookieSpawnRate;
+    }
+    public void setCookieSpawnRate(double cookieSpawnRate) {
+        this.cookieSpawnRate = cookieSpawnRate;
     }
 
 }
