@@ -17,6 +17,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 import static ch.uzh.ifi.hase.soprafs24.service.LobbyService.putGameToLobby;
@@ -44,7 +45,7 @@ public class GameService {
         this.applicationContext = applicationContext;
         this.snakeService = snakeService;
     }
-    
+
     // Add a method to get WebSocketHandler lazily when needed
     private WebSocketHandler getWebSocketHandler() {
         return applicationContext.getBean(WebSocketHandler.class);
@@ -116,14 +117,14 @@ public class GameService {
             catch (IOException e) {throw new RuntimeException(e);}
             while (!game.isGameOver()) {
                 updateGameState(game);
-                game.setTimestamp(game.getTimestamp()-0.25f);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
+                game.setTimestamp(game.getTimestamp()-0.20f);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
                 try {
                     broadcastGameState(game); // Sendet Spielzustand an alle WebSocket-Clients
                 }
                 catch (IOException e) {
                     throw new RuntimeException(e);}
                 try {
-                    Thread.sleep(250); // Wartezeit für den nächsten Loop (z. B. 100ms pro Frame)
+                    Thread.sleep(200); // Wartezeit für den nächsten Loop (z. B. 100ms pro Frame)
                 }
                 catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -176,8 +177,10 @@ public class GameService {
     }
 
     public void endGame(Game game) throws IOException {
+        rankRemainingPlayers(game);
+
         // update winning stats
-        String winnerName = game.getWinner();
+        String winnerName = game.getLeaderboard().get(0);
         if (winnerName != null) {
             User winner = userRepository.findByUsername(winnerName);
             winner.setWins(winner.getWins()+1);
@@ -189,7 +192,7 @@ public class GameService {
             Optional<User> currentUser = userRepository.findById(playerId);
             if (currentUser.isPresent()) {
                 User user = currentUser.get();
-                int newLevel = user.getWins()/2 + user.getKills()/4;
+                int newLevel = user.getWins()/2 + user.getKills()/4 + 1;
                 user.setLevel(newLevel);
                 userRepository.save(user);
                 logger.info("User {} reached level {}!", user.getUsername(), user.getLevel());
@@ -197,11 +200,11 @@ public class GameService {
                 logger.error("User {} not found!", playerId);
             }
         }
-
+        List<String> leaderboard = game.getLeaderboard();
         logger.info("Ending game: {}", game.getGameId());
         ObjectNode message = mapper.createObjectNode();
         message.put("type", "gameEnd");
-        message.put("winner",game.getWinner());  // We need a way to track the winner.
+        message.put("rank", mapper.valueToTree(leaderboard));
         message.put("reason","Last survivor");
         WebSocketHandler webSocketHandler = getWebSocketHandler();
         webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
@@ -222,6 +225,7 @@ public class GameService {
                 logger.info("Collision detected for snake: {}", snake.getUserId());
                 spawnCookiesOnDeath(snake, game);
                 snake.setCoordinates(new int[0][0]); // Set coordinates to empty to mark as dead
+                game.addLeaderboardEntry(snake.getUsername());
             }
         }
         if (aliveSnakes.size() == 1) {
@@ -351,6 +355,26 @@ public class GameService {
                 break; // Beende die Schleife bei Unterbrechung
             }
         }
+    }
+    public static void rankRemainingPlayers(Game game) {
+        List<Snake> remainingPlayers = new ArrayList<>();
+
+        for (Snake snake : game.getSnakes()) {
+            if (snake.getCoordinates().length == 0) {
+                continue;
+            } else {
+                remainingPlayers.add(snake);
+            }
+        }
+
+        // Sortiere remainingPlayers nach der Größe von snake.getCoordinates()
+        remainingPlayers.sort((s1, s2) -> Integer.compare(s2.getCoordinates().length, s1.getCoordinates().length));
+        // Liste umkehren
+        Collections.reverse(remainingPlayers);
+        for (Snake player : remainingPlayers){
+            game.addLeaderboardEntry(player.getUsername());
+        }
+
     }
 }
 
