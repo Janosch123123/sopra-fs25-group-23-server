@@ -223,6 +223,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     String cookieSpawnRateNode;
                     if (settingsNode != null && settingsNode.has("spawnRate")) {
                         cookieSpawnRateNode = settingsNode.get("spawnRate").asText();
+                        if (settingsNode.get("sugarRush").asBoolean()){
+                            cookieSpawnRateNode = "sugarRush";
+                        }
                     } else {
                         sendErrorMessage(session, "Invalid or missing cookieSpawnRate in settings");
                         return;

@@ -61,6 +61,9 @@ public class GameService {
             case "Slow" -> game.setCookieSpawnRate(0.1);
             case "Medium" -> game.setCookieSpawnRate(0.3);
             case "Fast" -> game.setCookieSpawnRate(0.5);
+            case "sugarRush" -> {
+                game.setCookieSpawnRate(0.0); activateSugarRush(game);
+            }
             default -> game.setCookieSpawnRate(0.3); // Default to medium if invalid input
         }
         game.setLobby(managedLobby);
@@ -71,14 +74,42 @@ public class GameService {
         // Log player IDs to debug
         logger.info("Creating game with {} players", playersId.size());
         addSnakesToBoard(game, playersId);
-        
-        List<Item> gameItems = new ArrayList<>();
-        gameItems.add(new Item(new int[]{12, 12}, "cookie"));
-        gameItems.add(new Item(new int[]{8, 13}, "cookie"));
-        gameItems.add(new Item(new int[]{2, 17}, "cookie"));
-        game.setItems(gameItems);
+
+        if (cookieSpawnRate.equals("sugarRush")){}
+        else {
+            // X = 13
+            game.addItem(new Item(new int[]{13, 11}, "cookie"));
+            game.addItem(new Item(new int[]{13, 12}, "cookie"));
+            game.addItem(new Item(new int[]{13, 13}, "cookie"));
+
+            // X = 14
+            game.addItem(new Item(new int[]{14, 11}, "cookie"));
+            game.addItem(new Item(new int[]{14, 12}, "cookie"));
+            game.addItem(new Item(new int[]{14, 13}, "cookie"));
+
+            // X = 15
+            game.addItem(new Item(new int[]{15, 11}, "cookie"));
+            game.addItem(new Item(new int[]{15, 12}, "cookie"));
+            game.addItem(new Item(new int[]{15, 13}, "cookie"));
+
+            // X = 16
+            game.addItem(new Item(new int[]{16, 11}, "cookie"));
+            game.addItem(new Item(new int[]{16, 12}, "cookie"));
+            game.addItem(new Item(new int[]{16, 13}, "cookie"));
+
+        }
 
         return game;
+    }
+
+    private void activateSugarRush(Game game) {
+        for (int x = 0; x <= 29; x++) {
+            for (int y = 0; y <= 24; y++) {
+                // Füge an jeder Position ein Cookie hinzu
+                game.addItem(new Item(new int[]{x, y}, "cookie"));
+            }
+        }
+
     }
 
     private void addSnakesToBoard(Game game, List<Long> playersId){
