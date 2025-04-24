@@ -106,6 +106,14 @@ public class SnakeService {
         int[] head = snake.getCoordinates()[0];
         //check for collision with walls
         if (head[0] < 0 || head[0] >= 30 || head[1] < 0 || head[1] >= 25) {
+            // updating length-PR
+            String username = snake.getUsername();
+            User victim = userRepository.findByUsername(username);
+            if (victim.getLengthPR() < snake.getCoordinates().length) {
+                victim.setLengthPR(snake.getCoordinates().length);
+                userRepository.save(victim);
+                userRepository.flush();
+            }
             return true;
         }
         // check collision with other snakes
@@ -127,6 +135,7 @@ public class SnakeService {
                         User killer = userRepository.findByUsername(snakeName);
                         killer.setKills(killer.getKills()+1);
                     }
+                    // updating length-PR
                     String username = snake.getUsername();
                     User victim = userRepository.findByUsername(username);
                     if (victim.getLengthPR() < snake.getCoordinates().length) {
