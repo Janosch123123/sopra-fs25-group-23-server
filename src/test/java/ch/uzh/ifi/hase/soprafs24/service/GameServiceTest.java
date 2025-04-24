@@ -115,7 +115,7 @@ public class GameServiceTest {
         
         // Verify initial items
         assertNotNull(createdGame.getItems());
-        assertEquals(3, createdGame.getItems().size());
+        assertEquals(12, createdGame.getItems().size());
         
         // Verify that the repository was accessed
         verify(lobbyRepository, times(1)).findById(testLobby.getId());

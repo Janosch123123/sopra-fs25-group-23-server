@@ -201,7 +201,8 @@ public class WebSocketHandlerTest {
         requestBody.put("type", "startGame");
         requestBody.put("lobbyCode", 100L);
         ObjectNode settings = objectMapper.createObjectNode();
-        settings.put("spawnRate", "Medium"); // Add spawnRate to settings
+        settings.put("spawnRate", "Medium");
+        settings.put("sugarRush", "false");// Add spawnRate to settings
         requestBody.set("settings", settings);
         TextMessage textMessage = new TextMessage(objectMapper.writeValueAsString(requestBody));
 

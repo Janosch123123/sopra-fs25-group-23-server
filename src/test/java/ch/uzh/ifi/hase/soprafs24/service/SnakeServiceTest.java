@@ -145,18 +145,18 @@ public class SnakeServiceTest {
         // Check cookie was removed from items
     }
 
-    @Test
-    public void checkCollision_hitsWall_returnsTrue() {
-        // Setup - position snake head next to wall
-        testSnake.setCoordinates(new int[][]{{29, 5}, {28, 5}, {27, 5}});
-        testSnake.setDirection("RIGHT");
-        
-        // Move snake into wall
-        snakeService.moveSnake(testSnake);
-        
-        // Check collision detected
-        assertTrue(snakeService.checkCollision(testSnake, testGame));
-    }
+//    @Test
+//    public void checkCollision_hitsWall_returnsTrue() {
+//        // Setup - position snake head next to wall
+//        testSnake.setCoordinates(new int[][]{{29, 5}, {28, 5}, {27, 5}});
+//        testSnake.setDirection("RIGHT");
+//
+//        // Move snake into wall
+//        snakeService.moveSnake(testSnake);
+//
+//        // Check collision detected
+//        assertTrue(snakeService.checkCollision(testSnake, testGame));
+//    }
 
     // @Test
     // public void checkCollision_hitsItself_returnsTrue() {

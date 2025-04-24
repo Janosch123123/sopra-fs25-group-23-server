@@ -42,7 +42,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Autowired
     private UserService userService;
 
-    @Autowired
+        @Autowired
     private GameService gameService;
 
     @Autowired
