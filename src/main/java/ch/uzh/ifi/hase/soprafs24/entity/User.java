@@ -48,7 +48,7 @@ public class User implements Serializable {
   private int kills;
 
   @Column
-  private int level;
+  private double level;
 
   @Column
   private long lobbyCode;
@@ -65,11 +65,11 @@ public class User implements Serializable {
   public int getPlayedGames() {return playedGames;}
   public void setPlayedGames(int playedGames) {this.playedGames = playedGames;}
 
-  public int getLevel() {
+  public double getLevel() {
     return level;
   }
 
-  public void setLevel(int level) {
+  public void setLevel(double level) {
     this.level = level;
   }
 
