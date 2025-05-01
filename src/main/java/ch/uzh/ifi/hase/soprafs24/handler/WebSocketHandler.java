@@ -344,9 +344,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
             if (userLobby != null) {
                 // Remove user from the lobby's participants
                 userLobby.removeParticipantId(userId);
-                
-                // Use the LobbyService to save the updated lobby
-                lobbyService.updateLobby(userLobby);
+
+                // Check if the user was the last one in the lobby
+                if (userLobby.getParticipantIds().isEmpty()) {
+                    // If the lobby is empty, delete it
+                    lobbyService.deleteLobby(userLobby.getId());
+                } else {
+                    // If not, just update the lobby
+                    lobbyService.updateLobby(userLobby);
+                }
                 
                 sendLobbyStateToUsers(userLobby.getId());   
                 logger.info("User {} removed from lobby {}", userId, userLobby.getId());

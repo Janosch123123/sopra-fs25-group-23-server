@@ -35,10 +35,14 @@ public class LobbyService {
         this.userRepository = userRepository;
         this.userService = userService;
     }
+
     public static Game getGameByLobby(long lobbyId) {
         return lobbyGamesMap.get(lobbyId);
     }
-    public static void putGameToLobby(Game game, Long lobbyId) {lobbyGamesMap.put(lobbyId, game);}
+
+    public static void putGameToLobby(Game game, Long lobbyId) {
+        lobbyGamesMap.put(lobbyId, game);
+    }
 
     /**
      * Creates a new lobby with the given user as admin
@@ -116,29 +120,28 @@ public class LobbyService {
         return savedLobby;
     }
 
-
-
     // /**
-    //  * Creates a new lobby with user identified by token as admin
-    //  *
-    //  * @param token the authentication token for the user who will be admin
-    //  * @return the created lobby
-    //  * @throws IllegalArgumentException if token is invalid or user not found
-    //  */
+    // * Creates a new lobby with user identified by token as admin
+    // *
+    // * @param token the authentication token for the user who will be admin
+    // * @return the created lobby
+    // * @throws IllegalArgumentException if token is invalid or user not found
+    // */
     // public Lobby createLobbyFromToken(String token) {
-    //     if (token == null || token.isEmpty()) {
-    //         throw new IllegalArgumentException("Authentication token cannot be null or empty");
-    //     }
+    // if (token == null || token.isEmpty()) {
+    // throw new IllegalArgumentException("Authentication token cannot be null or
+    // empty");
+    // }
 
-    //     // Get user from token
-    //     User user = userService.getUserByToken(token);
+    // // Get user from token
+    // User user = userService.getUserByToken(token);
 
-    //     if (user == null) {
-    //         throw new IllegalArgumentException("Invalid token or user not found");
-    //     }
+    // if (user == null) {
+    // throw new IllegalArgumentException("Invalid token or user not found");
+    // }
 
-    //     // Use existing method to create the lobby with the found user
-    //     return createPrivateLobby(user);
+    // // Use existing method to create the lobby with the found user
+    // return createPrivateLobby(user);
     // }
 
     /**
@@ -183,20 +186,21 @@ public class LobbyService {
         userRepository.save(user);
     }
 
-     /**
+    /**
      * Find the lobby that a user is participating in
+     * 
      * @param userId The ID of the user
      * @return The Lobby object or null if not found
      */
     public Lobby findLobbyForUser(Long userId) {
         List<Lobby> lobbies = lobbyRepository.findAll();
-        
+
         for (Lobby lobby : lobbies) {
             if (lobby.getParticipantIds().contains(userId)) {
                 return lobby;
             }
         }
-        
+
         return null;
     }
 
@@ -210,12 +214,29 @@ public class LobbyService {
         if (lobby == null) {
             throw new IllegalArgumentException("Lobby cannot be null");
         }
-        
+
         // Verify the lobby exists
         lobbyRepository.findById(lobby.getId())
-            .orElseThrow(() -> new IllegalArgumentException("Lobby not found with ID: " + lobby.getId()));
-        
+                .orElseThrow(() -> new IllegalArgumentException("Lobby not found with ID: " + lobby.getId()));
+
         return lobbyRepository.save(lobby);
+    }
+
+    /**
+     * Deletes a lobby by its ID
+     *
+     * @param lobbyId the ID of the lobby to delete
+     */
+    public void deleteLobby(Long lobbyId) {
+        // Check if the lobby exists
+        Optional<Lobby> lobbyOptional = lobbyRepository.findById(lobbyId);
+        if (lobbyOptional.isPresent()) {
+            // Delete the lobby from the repository
+            lobbyRepository.deleteById(lobbyId);
+            log.info("Lobby with ID {} has been deleted.", lobbyId);
+        } else {
+            log.warn("Attempted to delete a non-existent lobby with ID {}.", lobbyId);
+        }
     }
 
 }
