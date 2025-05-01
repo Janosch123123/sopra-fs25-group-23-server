@@ -107,7 +107,7 @@ public class WebSocketHandlerTest {
         testLobby.setAdminId(1L);
         
         when(userService.getUserByToken("test-token")).thenReturn(testUser);
-        when(lobbyService.createLobby(testUser)).thenReturn(testLobby);
+        when(lobbyService.createPrivateLobby(testUser)).thenReturn(testLobby);
         
         // Create test message
         ObjectNode requestBody = objectMapper.createObjectNode();
@@ -118,7 +118,7 @@ public class WebSocketHandlerTest {
         webSocketHandler.handleTextMessage(session, textMessage);
         
         // Verify
-        verify(lobbyService).createLobby(testUser);
+        verify(lobbyService).createPrivateLobby(testUser);
         verify(lobbyService).addLobbyCodeToUser(testUser, 100L);
         verify(session).sendMessage(any(TextMessage.class));
     }
