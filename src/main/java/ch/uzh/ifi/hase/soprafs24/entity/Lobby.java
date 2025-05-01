@@ -26,6 +26,9 @@ public class Lobby implements Serializable {
     @Column
     private Long gameId;
 
+    @Column
+    private String visibility;
+
     // Change from a list of User objects to a list of user IDs
     @ElementCollection(fetch = FetchType.EAGER) // Added EAGER fetch type
     @CollectionTable(name = "lobby_participants", joinColumns = @JoinColumn(name = "lobby_id"))
@@ -96,5 +99,12 @@ public class Lobby implements Serializable {
 
     public void setGameId(Long gameId) {
         this.gameId = gameId;
+    }
+
+    public String getVisibility() {
+        return visibility;
+    }
+    public void setVisibility(String visibility) {
+        this.visibility = visibility;
     }
 }

@@ -46,7 +46,7 @@ public class LobbyService {
      * @param admin the user who will be the admin of the lobby
      * @return the created lobby
      */
-    public Lobby createLobby(User admin) {
+    public Lobby createPrivateLobby(User admin) {
         if (admin == null) {
             throw new IllegalArgumentException("Admin user cannot be null");
         }
@@ -56,6 +56,7 @@ public class LobbyService {
         // Create new lobby
         Lobby lobby = new Lobby();
         lobby.setAdminId(admin.getId());
+        lobby.setVisibility("private");
 
         // Save to get an ID
         Lobby savedLobby = lobbyRepository.save(lobby);
@@ -69,28 +70,76 @@ public class LobbyService {
         return savedLobby;
     }
 
-    /**
-     * Creates a new lobby with user identified by token as admin
-     *
-     * @param token the authentication token for the user who will be admin
-     * @return the created lobby
-     * @throws IllegalArgumentException if token is invalid or user not found
-     */
-    public Lobby createLobbyFromToken(String token) {
-        if (token == null || token.isEmpty()) {
-            throw new IllegalArgumentException("Authentication token cannot be null or empty");
-        }
-
-        // Get user from token
-        User user = userService.getUserByToken(token);
-
+    public Lobby handleQuickPlay(User user) {
         if (user == null) {
-            throw new IllegalArgumentException("Invalid token or user not found");
+            throw new IllegalArgumentException("User user cannot be null");
+        }
+        List<Lobby> lobbies = lobbyRepository.findByVisibility("public");
+
+        if (lobbies.isEmpty()) {
+            return createPublicLobby(user);
+        } else {
+            for (Lobby lobby : lobbies) {
+                if (lobby.getParticipantIds().size() < 3) {
+                    lobby.addParticipant(user);
+                    lobbyRepository.save(lobby);
+
+                    System.out.println("User joined existing lobby");
+                    return lobby;
+                }
+            }
+        }
+        return createPublicLobby(user);
+    }
+
+    public Lobby createPublicLobby(User admin) {
+        if (admin == null) {
+            throw new IllegalArgumentException("Admin user cannot be null");
         }
 
-        // Use existing method to create the lobby with the found user
-        return createLobby(user);
+        log.debug("Creating new lobby with admin: {}", admin.getUsername());
+
+        // Create new lobby
+        Lobby lobby = new Lobby();
+        lobby.setAdminId(admin.getId());
+        lobby.setVisibility("public");
+
+        // Save to get an ID
+        Lobby savedLobby = lobbyRepository.save(lobby);
+
+        // Add admin as first participant
+        savedLobby.addParticipant(admin);
+        lobbyRepository.save(savedLobby);
+
+        log.info("Created new lobby with ID: {} and admin: {}", savedLobby.getId(), admin.getUsername());
+
+        return savedLobby;
     }
+
+
+
+    // /**
+    //  * Creates a new lobby with user identified by token as admin
+    //  *
+    //  * @param token the authentication token for the user who will be admin
+    //  * @return the created lobby
+    //  * @throws IllegalArgumentException if token is invalid or user not found
+    //  */
+    // public Lobby createLobbyFromToken(String token) {
+    //     if (token == null || token.isEmpty()) {
+    //         throw new IllegalArgumentException("Authentication token cannot be null or empty");
+    //     }
+
+    //     // Get user from token
+    //     User user = userService.getUserByToken(token);
+
+    //     if (user == null) {
+    //         throw new IllegalArgumentException("Invalid token or user not found");
+    //     }
+
+    //     // Use existing method to create the lobby with the found user
+    //     return createPrivateLobby(user);
+    // }
 
     /**
      * Gets a lobby by its ID

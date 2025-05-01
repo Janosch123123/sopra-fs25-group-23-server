@@ -142,7 +142,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     }
 
                     // Direct call to LobbyService's createLobby method
-                    Lobby lobby = lobbyService.createLobby(user);
+                    Lobby lobby = lobbyService.createPrivateLobby(user);
                     lobbyService.addLobbyCodeToUser(user, lobby.getId());
                     // Send success response with the lobby ID
                     ObjectNode response = mapper.createObjectNode();
@@ -287,6 +287,31 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 } catch (Exception e) {
                     logger.error("Error processing player move", e);
                     sendErrorMessage(session, "Failed to process player move: " + e.getMessage());
+                }
+            } else if ("quickPlay".equals(type)) {
+                // Extract token from session
+                String token = getTokenFromSession(session);
+                try {
+                    // Get user from token
+                    User user = userService.getUserByToken(token);
+
+                    if (user == null) {
+                        sendErrorMessage(session, "Invalid token or user not found");
+                        return;
+                    }
+                    Lobby lobby = lobbyService.handleQuickPlay(user);
+
+                    lobbyService.addLobbyCodeToUser(user, lobby.getId());
+                    // Send success response with the lobby ID
+                    ObjectNode response = mapper.createObjectNode();
+                    response.put("type", "quickPlayResponse");
+                    response.put("lobbyId", lobby.getId());
+
+                    session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+                    logger.info("Created lobby for session: {}", session.getId());
+                } catch (Exception e) {
+                    logger.error("Error creating lobby", e);
+                    sendErrorMessage(session, "Failed to create lobby: " + e.getMessage());
                 }
             }
             else {
