@@ -1,10 +1,7 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
 import ch.uzh.ifi.hase.soprafs24.entity.*;
-import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Cookie;
-import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Divider;
-import ch.uzh.ifi.hase.soprafs24.entity.Powerups.GoldenCookie;
-import ch.uzh.ifi.hase.soprafs24.entity.Powerups.ReverseControl;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerups.*;
 import ch.uzh.ifi.hase.soprafs24.handler.WebSocketHandler;
 import ch.uzh.ifi.hase.soprafs24.repository.LobbyRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
@@ -52,12 +49,13 @@ public class GameService {
         return applicationContext.getBean(WebSocketHandler.class);
     }
 
-    public Game createGame(Lobby lobby, String cookieSpawnRate) {
+    public Game createGame(Lobby lobby, String cookieSpawnRate, Boolean powerupsWanted) {
         // Ensure we are working with a managed entity within the current transaction
         Lobby managedLobby = lobbyRepository.findById(lobby.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Lobby not found with ID: " + lobby.getId()));
 
         Game game = new Game();
+        game.setPowerupsWanted(powerupsWanted);
         switch (cookieSpawnRate) {
             case "Slow" -> game.setCookieSpawnRate(0.1);
             case "Medium" -> game.setCookieSpawnRate(0.3);
@@ -104,6 +102,7 @@ public class GameService {
         game.addItem(new Divider(new int[]{1, 1}, "powerup"));
         game.addItem(new GoldenCookie(new int[]{28, 1}, "powerup"));
         game.addItem(new ReverseControl(new int[]{15, 1}, "powerup"));
+        game.addItem(new Multiplier(new int[]{1, 23}, "powerup"));
 
         return game;
     }
@@ -212,6 +211,45 @@ public class GameService {
         // Füge die Cookie-Positionen zu den JSON-Daten hinzu
         message.set("cookies", mapper.valueToTree(cookiePositions));
 
+        // Extrahiere die Golden Cookies aus der Items-Liste
+        List<int[]> goldenCookiePositions = new ArrayList<>();
+        for (Item item : game.getItems()) {
+            if ("powerup".equals(item.getType()) && item instanceof GoldenCookie) {
+                goldenCookiePositions.add(item.getPosition());
+            }
+        }
+        // Füge die Golden Cookie-Positionen zu den JSON-Daten hinzu
+        message.set("goldenCookies", mapper.valueToTree(goldenCookiePositions));
+
+        // Extrahiere die ReverseControl-Items aus der Items-Liste
+        List<int[]> reverseControlPositions = new ArrayList<>();
+        for (Item item : game.getItems()) {
+            if ("powerup".equals(item.getType()) && item instanceof ReverseControl) {
+                reverseControlPositions.add(item.getPosition());
+            }
+        }
+        // Füge die ReverseControl-Positionen zu den JSON-Daten hinzu
+        message.set("reverseControls", mapper.valueToTree(reverseControlPositions));
+
+        // Extrahiere die Divider-Items aus der Items-Liste
+        List<int[]> dividerPositions = new ArrayList<>();
+        for (Item item : game.getItems()) {
+            if ("powerup".equals(item.getType()) && item instanceof Divider) {
+                dividerPositions.add(item.getPosition());
+            }
+        }
+        // Füge die Divider-Positionen zu den JSON-Daten hinzu
+        message.set("dividers", mapper.valueToTree(dividerPositions));
+
+        List<int[]> multiplierPositions = new ArrayList<>();
+        for (Item item : game.getItems()) {
+            if ("powerup".equals(item.getType()) && item instanceof Multiplier) {
+                multiplierPositions.add(item.getPosition());
+            }
+        }
+        // Füge die Divider-Positionen zu den JSON-Daten hinzu
+        message.set("multipliers", mapper.valueToTree(multiplierPositions));
+
 
         // Get WebSocketHandler lazily only when needed
         WebSocketHandler webSocketHandler = getWebSocketHandler();
@@ -299,7 +337,7 @@ public class GameService {
         // Spawne ggf. neue Items (mit 25% Chance)
         Random random = new Random();
         double chance = random.nextDouble();
-        if (chance < game.getCookieSpawnRate()) { // 20 % Chance
+        if (chance < game.getCookieSpawnRate()) {
             spawnItem(game);
         }
     }
@@ -369,6 +407,27 @@ public class GameService {
                 }
             }
 
+        }
+        if (game.getPowerupsWanted()){
+            Random random1 = new Random();
+            // spawn golden Cookie
+            double chance = random1.nextDouble();
+            if (chance < 0.00667) {
+                Item item = new GoldenCookie(new int[]{x, y}, "powerup");
+                game.addItem(item);
+            }
+            // spawn Reverse Control
+            if (chance < 0.01333) {
+                Item item = new ReverseControl(new int[]{x, y}, "powerup");
+                game.addItem(item);
+            }
+            // spawn Divider
+            if (chance < 0.02) {
+                Item item = new Divider(new int[]{x, y}, "powerup");
+                game.addItem(item);
+            }
+
+            return;
         }
         Item item = new Cookie(new int[]{x, y}, "cookie");
         game.addItem(item);
