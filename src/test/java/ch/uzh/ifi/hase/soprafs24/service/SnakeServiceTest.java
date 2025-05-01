@@ -2,6 +2,7 @@ package ch.uzh.ifi.hase.soprafs24.service;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Game;
 import ch.uzh.ifi.hase.soprafs24.entity.Item;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Cookie;
 import ch.uzh.ifi.hase.soprafs24.entity.Snake;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -117,9 +118,8 @@ public class SnakeServiceTest {
     @Test
     public void moveSnake_eatsCookie_growsSnake() {
         // Setup - add a cookie to the game at the position where the snake will move
-        Item cookie = new Item();
-        cookie.setType("cookie");
-        cookie.setPosition(new int[]{6, 5}); // Position right in front of snake
+        Item cookie = new Cookie(new int[]{6, 5}, "cookie");
+        // Position right in front of snake
         testGame.getItems().add(cookie);
 
         // Initial length

@@ -1,6 +1,8 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
 import ch.uzh.ifi.hase.soprafs24.entity.*;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Cookie;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Divider;
 import ch.uzh.ifi.hase.soprafs24.handler.WebSocketHandler;
 import ch.uzh.ifi.hase.soprafs24.repository.LobbyRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
@@ -13,11 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.*;
 
 import static ch.uzh.ifi.hase.soprafs24.service.LobbyService.putGameToLobby;
@@ -78,26 +77,27 @@ public class GameService {
         if (cookieSpawnRate.equals("sugarRush")){}
         else {
             // X = 13
-            game.addItem(new Item(new int[]{13, 11}, "cookie"));
-            game.addItem(new Item(new int[]{13, 12}, "cookie"));
-            game.addItem(new Item(new int[]{13, 13}, "cookie"));
+            game.addItem(new Cookie(new int[]{13, 11}, "cookie"));
+            game.addItem(new Cookie(new int[]{13, 12}, "cookie"));
+            game.addItem(new Cookie(new int[]{13, 13}, "cookie"));
 
             // X = 14
-            game.addItem(new Item(new int[]{14, 11}, "cookie"));
-            game.addItem(new Item(new int[]{14, 12}, "cookie"));
-            game.addItem(new Item(new int[]{14, 13}, "cookie"));
+            game.addItem(new Cookie(new int[]{14, 11}, "cookie"));
+            game.addItem(new Cookie(new int[]{14, 12}, "cookie"));
+            game.addItem(new Cookie(new int[]{14, 13}, "cookie"));
 
             // X = 15
-            game.addItem(new Item(new int[]{15, 11}, "cookie"));
-            game.addItem(new Item(new int[]{15, 12}, "cookie"));
-            game.addItem(new Item(new int[]{15, 13}, "cookie"));
+            game.addItem(new Cookie(new int[]{15, 11}, "cookie"));
+            game.addItem(new Cookie(new int[]{15, 12}, "cookie"));
+            game.addItem(new Cookie(new int[]{15, 13}, "cookie"));
 
             // X = 16
-            game.addItem(new Item(new int[]{16, 11}, "cookie"));
-            game.addItem(new Item(new int[]{16, 12}, "cookie"));
-            game.addItem(new Item(new int[]{16, 13}, "cookie"));
+            game.addItem(new Cookie(new int[]{16, 11}, "cookie"));
+            game.addItem(new Cookie(new int[]{16, 12}, "cookie"));
+            game.addItem(new Cookie(new int[]{16, 13}, "cookie"));
 
         }
+        game.addItem(new Divider(new int[]{1, 1}, "powerup"));
 
         return game;
     }
@@ -106,7 +106,7 @@ public class GameService {
         for (int x = 0; x <= 29; x++) {
             for (int y = 0; y <= 24; y++) {
                 // Füge an jeder Position ein Cookie hinzu
-                game.addItem(new Item(new int[]{x, y}, "cookie"));
+                game.addItem(new Cookie(new int[]{x, y}, "cookie"));
             }
         }
 
@@ -269,6 +269,9 @@ public class GameService {
                 snake.setCoordinates(new int[0][0]); // Set coordinates to empty to mark as dead
                 game.addLeaderboardEntry(snake.getUsername());
             }
+            if (snake.getCoordinates().length != 0){
+                checkPowerupCollision(snake);
+            }
         }
         if (aliveSnakes.size() == 1) {
             Snake winnerSnake = aliveSnakes.get(0);
@@ -285,6 +288,30 @@ public class GameService {
         }
     }
 
+    private void checkPowerupCollision(Snake snake) {
+        // Position des Kopfes der Schlange abrufen
+        int[] head = snake.getCoordinates()[0]; // Der Kopf ist der erste Punkt im Koordinatenarray
+
+        // Durchlaufen der Items im Spiel (Game)
+        for (Item item : snake.getGame().getItems()) {
+            // Prüfen, ob das aktuelle Item vom Typ "cookie" ist
+            if ("powerup".equals(item.getType())) {
+                int[] powerupPosition = item.getPosition(); // Cookie-Position abrufen
+
+                // Prüfen, ob die Kopfposition mit der Cookie-Position übereinstimmt
+                if (head[0] == powerupPosition[0] && head[1] == powerupPosition[1]) {
+                    // Kollision -> Entfernt den Cookie aus dem Spiel
+                    item.applyEffect(snake);
+                    snake.getGame().getItems().remove(item);
+                    return; // Eine Kollision wurde festgestellt
+                }
+            }
+        }
+
+        // Keine Kollision gefunden
+        return;
+    }
+
     private void spawnCookiesOnDeath(Snake snake, Game game) {
         // Spawn cookies at the coordinates of the dead snake
         int[][] coordinates = snake.getCoordinates();
@@ -297,7 +324,7 @@ public class GameService {
                 }
             }
             if (!alreadyInGame) {
-                Item item = new Item(coordinate, "cookie");
+                Item item = new Cookie(coordinate, "cookie");
                 game.addItem(item);
             }
         }
@@ -327,7 +354,7 @@ public class GameService {
             }
 
         }
-        Item item = new Item(new int[]{x, y}, "cookie");
+        Item item = new Cookie(new int[]{x, y}, "cookie");
         game.addItem(item);
     }
 

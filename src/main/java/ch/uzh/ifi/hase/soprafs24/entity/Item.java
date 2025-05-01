@@ -1,17 +1,14 @@
 package ch.uzh.ifi.hase.soprafs24.entity;
 
-public class Item {
+public abstract class Item {
     private int[] position;
     private String type;
-
-    public Item() {
-        // Default constructor needed for some frameworks
-    }
 
     public Item(int[] position, String type) {
         this.position = position;
         this.type = type;
     }
+    public abstract void applyEffect(Snake snake);
 
     // Getters and setters
     public int[] getPosition() {
