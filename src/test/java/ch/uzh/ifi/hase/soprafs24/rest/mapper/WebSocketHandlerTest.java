@@ -192,7 +192,7 @@ public class WebSocketHandlerTest {
         Game testGame = new Game();
         testGame.setGameId(200L);
         
-        when(gameService.createGame(testLobby, "Medium")).thenReturn(testGame);
+        when(gameService.createGame(testLobby, "Medium", false)).thenReturn(testGame);
         when(userService.getUserByToken("test-token")).thenReturn(testUser);
         when(lobbyService.getLobbyById(100L)).thenReturn(testLobby);
 
@@ -210,7 +210,7 @@ public class WebSocketHandlerTest {
         webSocketHandler.handleTextMessage(session, textMessage);
 
         // Verify
-        verify(gameService).createGame(testLobby, "Medium");
+        verify(gameService).createGame(testLobby, "Medium", false);
         verify(gameService).start(testGame);
     }
 

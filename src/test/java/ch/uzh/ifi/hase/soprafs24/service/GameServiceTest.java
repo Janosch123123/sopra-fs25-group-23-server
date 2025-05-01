@@ -223,7 +223,7 @@ public class GameServiceTest {
         when(userService.getUserById(4L)).thenReturn(createTestUser(4L, "testUser4"));
         
         // when
-        Game game = gameService.createGame(testLobby, "Medium");
+        Game game = gameService.createGame(testLobby, "Medium", false);
         
         // then
         assertEquals(4, game.getSnakes().size());
