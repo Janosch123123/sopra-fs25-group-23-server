@@ -224,7 +224,7 @@ public class GameService {
             userRepository.save(winner);
             logger.info("User {} won the game!", winnerName);
         }
-        //update level stats
+        //update level stats + playedGames + winstreak
         for (Long playerId : game.getLobby().getParticipantIds()) {
             Optional<User> currentUser = userRepository.findById(playerId);
             if (currentUser.isPresent()) {
@@ -233,6 +233,8 @@ public class GameService {
                 int points = 1 + (user.getWins() / 2) + (user.getKills() / 4);
                 double newLevel = 5 * Math.sqrt((double)points/4) - 1;
                 user.setLevel(newLevel);
+                // update winstreak
+                user.setWinRate(user.getWins()/user.getPlayedGames());
                 userRepository.save(user);
                 userRepository.flush();
                 logger.info("User {} reached level {}!", user.getUsername(), user.getLevel());

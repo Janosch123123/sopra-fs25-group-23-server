@@ -50,6 +50,7 @@ public class UserService {
     newUser.setLevel(1.0);
     newUser.setPlayedGames(0);
     newUser.setLengthPR(0);
+    newUser.setWinRate(0);
 
     checkIfUserExists(newUser);
 
@@ -61,8 +62,16 @@ public class UserService {
     log.debug("Created Information for User: {}", newUser);
     return newUser;
   }
+    public List<User> getTopPlayersByLevel(int limit) {
+        // Wir begrenzen die Anzahl der zurückgegebenen Benutzer auf den angegebenen Wert
+        List<User> allUsers = userRepository.findTop10ByOrderByLevelDescWinRateDesc();
+        if (allUsers.size() > limit) {
+            return allUsers.subList(0, limit);
+        }
+        return allUsers;
+    }
 
-  public User loginUser(String username, String password) {
+        public User loginUser(String username, String password) {
     User user = userRepository.findByUsername(username);
     if (user != null && user.getPassword().equals(password)) {
       user.setStatus(UserStatus.ONLINE);

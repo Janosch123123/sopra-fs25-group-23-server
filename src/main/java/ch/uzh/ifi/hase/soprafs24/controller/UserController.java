@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs24.controller;
 
 import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.LeaderboardDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
@@ -54,6 +55,21 @@ public class UserController {
     }
     return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
   }
+    @GetMapping("/leaderboard") // Abrufen der aktuellen globalen Bestenliste
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public List<LeaderboardDTO> getLeaderboard() {
+        // Die Top 10 Spieler nach Level abrufen
+        List<User> topPlayers = userService.getTopPlayersByLevel(10);
+        List<LeaderboardDTO> leaderboardDTOs = new ArrayList<>();
+
+        // Jeden Benutzer in die speziell für die Bestenliste optimierte API-Repräsentation umwandeln
+        for (User user : topPlayers) {
+            leaderboardDTOs.add(DTOMapper.INSTANCE.convertEntityToLeaderboardDTO(user));
+        }
+        return leaderboardDTOs;
+    }
+
 
   @PostMapping("/users") // register user
   @ResponseStatus(HttpStatus.CREATED)

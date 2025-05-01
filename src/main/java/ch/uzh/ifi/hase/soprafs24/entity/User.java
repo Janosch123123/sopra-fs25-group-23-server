@@ -59,6 +59,11 @@ public class User implements Serializable {
   @Column
   private int lengthPR;
 
+  @Column double winRate;
+
+  public double getWinRate() {return winRate;}
+  public void setWinRate(int winRate) {this.winRate = winRate;}
+
   public int getLengthPR() {return lengthPR;}
   public void setLengthPR(int lengthPR) {this.lengthPR = lengthPR;}
 
