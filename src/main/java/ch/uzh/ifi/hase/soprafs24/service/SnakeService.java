@@ -54,10 +54,10 @@ public class SnakeService {
         }
         // Überprüfe auf Cookie-Kollision
         boolean ateCookie = checkCookieCollision(snake);
-
+        if (ateCookie) {snake.addGrowCount();}
         // Neues Koordinaten-Array erstellen
         int[][] newCoordinates;
-        if (ateCookie) {
+        if (snake.getGrowCount()>=1) {
             // Wenn ein Cookie gegessen wurde, behalten wir den Schwanz (Schlange wächst)
             newCoordinates = new int[coordinates.length + 1][];
         } else {
@@ -65,8 +65,9 @@ public class SnakeService {
             newCoordinates = new int[coordinates.length][];
         }
         newCoordinates[0] = newHead;
-        if (ateCookie) {
+        if (snake.getGrowCount()>=1) {
             System.arraycopy(coordinates, 0, newCoordinates, 1, coordinates.length);
+            snake.removeGrowCount();
         }else{
         System.arraycopy(coordinates, 0, newCoordinates, 1, coordinates.length-1);
         }

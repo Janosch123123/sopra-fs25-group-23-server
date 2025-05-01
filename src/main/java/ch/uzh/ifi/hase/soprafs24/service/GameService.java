@@ -3,6 +3,7 @@ package ch.uzh.ifi.hase.soprafs24.service;
 import ch.uzh.ifi.hase.soprafs24.entity.*;
 import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Cookie;
 import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Divider;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerups.GoldenCookie;
 import ch.uzh.ifi.hase.soprafs24.handler.WebSocketHandler;
 import ch.uzh.ifi.hase.soprafs24.repository.LobbyRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
@@ -98,6 +99,7 @@ public class GameService {
 
         }
         game.addItem(new Divider(new int[]{1, 1}, "powerup"));
+        game.addItem(new GoldenCookie(new int[]{28, 1}, "powerup"));
 
         return game;
     }
