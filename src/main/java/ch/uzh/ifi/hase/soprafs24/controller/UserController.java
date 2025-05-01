@@ -69,6 +69,22 @@ public class UserController {
         }
         return leaderboardDTOs;
     }
+    @GetMapping("/leaderboard/{id}") // Abrufen des Leaderboard-Rangs eines bestimmten Spielers
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Map<String, Integer> getLeaderboardRank(@PathVariable Long id) {
+        // Überprüfen, ob der Benutzer existiert
+        User user = userService.getUserById(id);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        // Rang des Benutzers ermitteln
+        int rank = userService.getUserRankInLeaderboard(id);
+
+        // Nur den Rang als Antwort zurückgeben
+        return Map.of("rank", rank);
+    }
 
 
   @PostMapping("/users") // register user

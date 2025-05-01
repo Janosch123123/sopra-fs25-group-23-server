@@ -62,6 +62,23 @@ public class UserService {
     log.debug("Created Information for User: {}", newUser);
     return newUser;
   }
+    public int getUserRankInLeaderboard(Long userId) {
+        // Hole alle Benutzer, sortiert nach Level und WinRate
+        List<User> allUsers = userRepository.findAllByOrderByLevelDescWinRateDesc();
+
+        // Finde den Index des gesuchten Benutzers
+        for (int i = 0; i < allUsers.size(); i++) {
+            if (allUsers.get(i).getId().equals(userId)) {
+                // Index + 1, da Ränge bei 1 beginnen, nicht bei 0
+                return i + 1;
+            }
+        }
+
+        // Wenn der Benutzer nicht gefunden wurde, werfe eine Exception
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found in leaderboard");
+    }
+
+
     public List<User> getTopPlayersByLevel(int limit) {
         // Wir begrenzen die Anzahl der zurückgegebenen Benutzer auf den angegebenen Wert
         List<User> allUsers = userRepository.findTop10ByOrderByLevelDescWinRateDesc();
