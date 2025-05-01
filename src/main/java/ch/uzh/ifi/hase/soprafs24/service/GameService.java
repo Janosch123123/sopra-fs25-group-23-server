@@ -230,7 +230,8 @@ public class GameService {
             if (currentUser.isPresent()) {
                 User user = currentUser.get();
                 user.setPlayedGames(user.getPlayedGames()+1);
-                int newLevel = 1 + (user.getWins() / 2) + (user.getKills() / 4);
+                int points = 1 + (user.getWins() / 2) + (user.getKills() / 4);
+                double newLevel = 5 * Math.sqrt((double)points/4) - 1;
                 user.setLevel(newLevel);
                 userRepository.save(user);
                 userRepository.flush();

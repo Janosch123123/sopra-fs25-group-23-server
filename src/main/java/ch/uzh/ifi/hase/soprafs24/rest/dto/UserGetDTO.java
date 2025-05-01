@@ -13,7 +13,7 @@ public class UserGetDTO {
   private String token; // added token field
   private int wins;
   private int kills;
-  private int level;
+  private double level;
   private int lobbyCode;
   private int playedGames;
   private int lengthPR;
@@ -27,10 +27,10 @@ public class UserGetDTO {
   public int getLobbyCode() {return lobbyCode;}
   public void setLobbyCode(int lobbyCode) {this.lobbyCode = lobbyCode;}
 
-  public int getLevel() {
+  public double getLevel() {
     return level;
   }
-  public void setLevel(int level) {
+  public void setLevel(double level) {
     this.level = level;
   }
   public int getWins() {
