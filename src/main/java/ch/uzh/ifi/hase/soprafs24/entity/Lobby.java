@@ -29,6 +29,9 @@ public class Lobby implements Serializable {
     @Column
     private String visibility;
 
+    @Column
+    private boolean solo = false;
+
     // Change from a list of User objects to a list of user IDs
     @ElementCollection(fetch = FetchType.EAGER) // Added EAGER fetch type
     @CollectionTable(name = "lobby_participants", joinColumns = @JoinColumn(name = "lobby_id"))
@@ -50,6 +53,14 @@ public class Lobby implements Serializable {
 
     public void setAdminId(Long adminId) {
         this.adminId = adminId;
+    }
+
+    public boolean isSolo() {
+        return solo;
+    }
+
+    public void setSolo(boolean solo) {
+        this.solo = solo;
     }
 
     public List<Long> getParticipantIds() {

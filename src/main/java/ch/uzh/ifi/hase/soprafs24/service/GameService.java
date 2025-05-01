@@ -216,12 +216,18 @@ public class GameService {
     public void endGame(Game game) throws IOException {
         rankRemainingPlayers(game);
 
+        // Check if this is a solo lobby
+        Lobby lobby = game.getLobby();
+        boolean isSoloLobby = lobby.isSolo();
+
         // update winning stats
         String winnerName = game.getLeaderboard().get(0);
         if (winnerName != null) {
             User winner = userRepository.findByUsername(winnerName);
-            winner.setWins(winner.getWins()+1);
-            userRepository.save(winner);
+            if (!isSoloLobby) {
+                winner.setWins(winner.getWins()+1);
+                userRepository.save(winner);
+            }
             logger.info("User {} won the game!", winnerName);
         }
         //update level stats
@@ -229,12 +235,15 @@ public class GameService {
             Optional<User> currentUser = userRepository.findById(playerId);
             if (currentUser.isPresent()) {
                 User user = currentUser.get();
-                user.setPlayedGames(user.getPlayedGames()+1);
-                int points = 1 + (user.getWins() / 2) + (user.getKills() / 4);
-                double newLevel = 5 * Math.sqrt((double)points/4) - 1;
-                user.setLevel(newLevel);
-                userRepository.save(user);
-                userRepository.flush();
+
+                if (!isSoloLobby) {
+                    user.setPlayedGames(user.getPlayedGames()+1);
+                    int points = 1 + (user.getWins() / 2) + (user.getKills() / 4);
+                    double newLevel = 5 * Math.sqrt((double)points/4) - 1;
+                    user.setLevel(newLevel);
+                    userRepository.save(user);
+                    userRepository.flush();
+                }
                 logger.info("User {} reached level {}!", user.getUsername(), user.getLevel());
             } else {
                 logger.error("User {} not found!", playerId);
@@ -407,17 +416,25 @@ public class GameService {
             }
         }
 
+        Lobby lobby = game.getLobby();
+        boolean isSoloLobby = lobby.isSolo();
+
         // Sortiere remainingPlayers nach der Größe von snake.getCoordinates()
         remainingPlayers.sort((s1, s2) -> Integer.compare(s2.getCoordinates().length, s1.getCoordinates().length));
         // Liste umkehren
+        logger.info("Sorting remaining players by length");
         Collections.reverse(remainingPlayers);
         for (Snake player : remainingPlayers){
             game.addLeaderboardEntry(player.getUsername());
             User user = userRepository.findByUsername(player.getUsername());
-            if (user.getLengthPR() < player.getCoordinates().length) {
-                user.setLengthPR(player.getCoordinates().length);
-                userRepository.save(user);
-                userRepository.flush();
+            logger.info("Adding {} to leaderboard", player.getUsername());
+            if (!isSoloLobby) {
+                logger.info("So we are really going here even thow we shoudnt");
+                if (user.getLengthPR() < player.getCoordinates().length) {
+                    user.setLengthPR(player.getCoordinates().length);
+                    userRepository.save(user);
+                    userRepository.flush();
+                    }
             }
         }
 
