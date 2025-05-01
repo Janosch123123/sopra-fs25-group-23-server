@@ -142,7 +142,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     }
 
                     // Direct call to LobbyService's createLobby method
-                    Lobby lobby = lobbyService.createLobby(user);
+                    Lobby lobby = lobbyService.createPrivateLobby(user);
                     lobbyService.addLobbyCodeToUser(user, lobby.getId());
                     // Send success response with the lobby ID
                     ObjectNode response = mapper.createObjectNode();
@@ -288,6 +288,31 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     logger.error("Error processing player move", e);
                     sendErrorMessage(session, "Failed to process player move: " + e.getMessage());
                 }
+            } else if ("quickPlay".equals(type)) {
+                // Extract token from session
+                String token = getTokenFromSession(session);
+                try {
+                    // Get user from token
+                    User user = userService.getUserByToken(token);
+
+                    if (user == null) {
+                        sendErrorMessage(session, "Invalid token or user not found");
+                        return;
+                    }
+                    Lobby lobby = lobbyService.handleQuickPlay(user);
+
+                    lobbyService.addLobbyCodeToUser(user, lobby.getId());
+                    // Send success response with the lobby ID
+                    ObjectNode response = mapper.createObjectNode();
+                    response.put("type", "quickPlayResponse");
+                    response.put("lobbyId", lobby.getId());
+
+                    session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+                    logger.info("Created lobby for session: {}", session.getId());
+                } catch (Exception e) {
+                    logger.error("Error creating lobby", e);
+                    sendErrorMessage(session, "Failed to create lobby: " + e.getMessage());
+                }
             }
             else {
                 sendErrorMessage(session, "Unknown message type: " + type);
@@ -319,9 +344,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
             if (userLobby != null) {
                 // Remove user from the lobby's participants
                 userLobby.removeParticipantId(userId);
-                
-                // Use the LobbyService to save the updated lobby
-                lobbyService.updateLobby(userLobby);
+
+                // Check if the user was the last one in the lobby
+                if (userLobby.getParticipantIds().isEmpty()) {
+                    // If the lobby is empty, delete it
+                    lobbyService.deleteLobby(userLobby.getId());
+                } else {
+                    // If not, just update the lobby
+                    lobbyService.updateLobby(userLobby);
+                }
                 
                 sendLobbyStateToUsers(userLobby.getId());   
                 logger.info("User {} removed from lobby {}", userId, userLobby.getId());
