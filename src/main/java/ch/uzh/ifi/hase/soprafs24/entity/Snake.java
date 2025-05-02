@@ -13,6 +13,13 @@ public class Snake {
     private Long userId;
     private String username;
     private List<String> directionQueue = new ArrayList<>();
+    private List<Item> effects = new ArrayList<>();
+    private int growCount = 0;
+
+    public void addGrowCount(){this.growCount++;}
+    public int getGrowCount(){return growCount;}
+    public void setGrowCount(int growCount){this.growCount = growCount;}
+    public void removeGrowCount(){this.growCount--;}
 
     public void addDirectionQueue(String direction){
         if (directionQueue.size() < 2){
@@ -36,6 +43,13 @@ public class Snake {
         }
         return null;
     }
+    public List<Item> getEffects() {return effects;}
+    public void setEffects(List<Item> effects) {this.effects = effects;}
+    public void addEffect(Item effect) {this.effects.add(effect);}
+    public void removeEffect(Item effect) {this.effects.remove(effect);}
+    public boolean hasEffect(Item effect) {return this.effects.contains(effect);}
+    public boolean hasEffects() {return this.effects.size() > 0;}
+    public boolean hasNoEffects() {return this.effects.size() == 0;}
 
     public Game getGame() {return game;}
     public void setGame(Game game) {this.game = game;}

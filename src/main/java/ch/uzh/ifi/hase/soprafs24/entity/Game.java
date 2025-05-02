@@ -15,6 +15,7 @@ public class Game {
     private String winner;
     private List<String> leaderboard;
     private double cookieSpawnRate;
+    private boolean powerupsWanted;
 
     public Game() {
         this.gameId = generateUniqueGameId();
@@ -25,7 +26,10 @@ public class Game {
         this.winner = null;
         this.leaderboard = new ArrayList<>();
         this.cookieSpawnRate = 0.3;
+        this.powerupsWanted = false;
     }
+    public void setPowerupsWanted(Boolean powerupsWanted){this.powerupsWanted = powerupsWanted;}
+
     public float getTimestamp() {return timestamp;}
     public void setTimestamp(float timestamp) {this.timestamp = timestamp;}
 
@@ -113,4 +117,5 @@ public class Game {
         this.cookieSpawnRate = cookieSpawnRate;
     }
 
+    public Boolean getPowerupsWanted() {return powerupsWanted;}
 }

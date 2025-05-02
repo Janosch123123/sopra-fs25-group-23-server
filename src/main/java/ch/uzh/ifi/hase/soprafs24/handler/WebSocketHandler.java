@@ -212,13 +212,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
                         sendErrorMessage(session, "Invalid token or Admin not found");
                         return;
                     }
-
+                    // find lobby code from session attributes
                     long lobbyCode = user.getLobbyCode();
                     Lobby lobby = lobbyService.getLobbyById(lobbyCode);
                     if (lobby == null) {
                         sendErrorMessage(session, "Invalid lobby ID");
                         return;
-                    }
+                    } // looking at settings in the lobby
                     JsonNode settingsNode = jsonNode.get("settings");
                     String cookieSpawnRateNode;
                     if (settingsNode != null && settingsNode.has("spawnRate")) {
@@ -226,12 +226,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
                         if (settingsNode.get("sugarRush").asBoolean()){
                             cookieSpawnRateNode = "sugarRush";
                         }
-                    } else {
-                        sendErrorMessage(session, "Invalid or missing cookieSpawnRate in settings");
-                        return;
+
+                    } else {sendErrorMessage(session, "Invalid or missing cookieSpawnRate in settings");return;}
+                    Boolean powerupsWanted = false;
+                    if (settingsNode.has("powerupsWanted")) {
+                        powerupsWanted = settingsNode.get("powerupsWanted").asBoolean();
                     }
                     // Changed from static to instance method call
-                    Game game = gameService.createGame(lobby, cookieSpawnRateNode);
+                    Game game = gameService.createGame(lobby, cookieSpawnRateNode, powerupsWanted);
                     lobby.setGameId(game.getGameId());
                     lobbyRepository.save(lobby);
                     gameService.start(game);

@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
 import ch.uzh.ifi.hase.soprafs24.entity.*;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerups.*;
 import ch.uzh.ifi.hase.soprafs24.handler.WebSocketHandler;
 import ch.uzh.ifi.hase.soprafs24.repository.LobbyRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
@@ -13,11 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.*;
 
 import static ch.uzh.ifi.hase.soprafs24.service.LobbyService.putGameToLobby;
@@ -32,13 +30,13 @@ public class GameService {
     private final SnakeService snakeService;
     private final ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(GameService.class);
-    
+
     // Replace direct WebSocketHandler dependency with ApplicationContext
     private final ApplicationContext applicationContext;
 
     @Autowired
     public GameService(LobbyRepository lobbyRepository, UserRepository userRepository,
-                      UserService userService, ApplicationContext applicationContext, SnakeService snakeService) {
+                       UserService userService, ApplicationContext applicationContext, SnakeService snakeService) {
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
         this.userService = userService;
@@ -51,53 +49,60 @@ public class GameService {
         return applicationContext.getBean(WebSocketHandler.class);
     }
 
-    public Game createGame(Lobby lobby, String cookieSpawnRate) {
+    public Game createGame(Lobby lobby, String cookieSpawnRate, Boolean powerupsWanted) {
         // Ensure we are working with a managed entity within the current transaction
         Lobby managedLobby = lobbyRepository.findById(lobby.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Lobby not found with ID: " + lobby.getId()));
-        
+
         Game game = new Game();
+        game.setPowerupsWanted(powerupsWanted);
         switch (cookieSpawnRate) {
             case "Slow" -> game.setCookieSpawnRate(0.1);
             case "Medium" -> game.setCookieSpawnRate(0.3);
             case "Fast" -> game.setCookieSpawnRate(0.5);
             case "sugarRush" -> {
-                game.setCookieSpawnRate(0.0); activateSugarRush(game);
+                game.setCookieSpawnRate(0.0);
+                activateSugarRush(game);
             }
             default -> game.setCookieSpawnRate(0.3); // Default to medium if invalid input
         }
         game.setLobby(managedLobby);
         putGameToLobby(game, managedLobby.getId());
-        
+
         List<Long> playersId = managedLobby.getParticipantIds();
-        
+
         // Log player IDs to debug
         logger.info("Creating game with {} players", playersId.size());
         addSnakesToBoard(game, playersId);
 
-        if (cookieSpawnRate.equals("sugarRush")){}
+        if (cookieSpawnRate.equals("sugarRush")) {
+        }
         else {
             // X = 13
-            game.addItem(new Item(new int[]{13, 11}, "cookie"));
-            game.addItem(new Item(new int[]{13, 12}, "cookie"));
-            game.addItem(new Item(new int[]{13, 13}, "cookie"));
+            game.addItem(new Cookie(new int[]{13, 11}, "cookie"));
+            game.addItem(new Cookie(new int[]{13, 12}, "cookie"));
+            game.addItem(new Cookie(new int[]{13, 13}, "cookie"));
 
             // X = 14
-            game.addItem(new Item(new int[]{14, 11}, "cookie"));
-            game.addItem(new Item(new int[]{14, 12}, "cookie"));
-            game.addItem(new Item(new int[]{14, 13}, "cookie"));
+            game.addItem(new Cookie(new int[]{14, 11}, "cookie"));
+            game.addItem(new Cookie(new int[]{14, 12}, "cookie"));
+            game.addItem(new Cookie(new int[]{14, 13}, "cookie"));
 
             // X = 15
-            game.addItem(new Item(new int[]{15, 11}, "cookie"));
-            game.addItem(new Item(new int[]{15, 12}, "cookie"));
-            game.addItem(new Item(new int[]{15, 13}, "cookie"));
+            game.addItem(new Cookie(new int[]{15, 11}, "cookie"));
+            game.addItem(new Cookie(new int[]{15, 12}, "cookie"));
+            game.addItem(new Cookie(new int[]{15, 13}, "cookie"));
 
             // X = 16
-            game.addItem(new Item(new int[]{16, 11}, "cookie"));
-            game.addItem(new Item(new int[]{16, 12}, "cookie"));
-            game.addItem(new Item(new int[]{16, 13}, "cookie"));
+            game.addItem(new Cookie(new int[]{16, 11}, "cookie"));
+            game.addItem(new Cookie(new int[]{16, 12}, "cookie"));
+            game.addItem(new Cookie(new int[]{16, 13}, "cookie"));
 
         }
+        game.addItem(new Divider(new int[]{1, 1}, "powerup"));
+        game.addItem(new GoldenCookie(new int[]{28, 1}, "powerup"));
+        game.addItem(new ReverseControl(new int[]{15, 1}, "powerup"));
+        game.addItem(new Multiplier(new int[]{1, 23}, "powerup"));
 
         return game;
     }
@@ -106,18 +111,18 @@ public class GameService {
         for (int x = 0; x <= 29; x++) {
             for (int y = 0; y <= 24; y++) {
                 // Füge an jeder Position ein Cookie hinzu
-                game.addItem(new Item(new int[]{x, y}, "cookie"));
+                game.addItem(new Cookie(new int[]{x, y}, "cookie"));
             }
         }
 
     }
 
-    private void addSnakesToBoard(Game game, List<Long> playersId){
+    private void addSnakesToBoard(Game game, List<Long> playersId) {
         for (Long playerId : playersId) {
             logger.info("Adding snake for player: {}", playerId);
-            
+
             int index = playersId.indexOf(playerId);
-            
+
             int[][] coordinate;
             coordinate = switch (index % 4) {
                 case 0 -> new int[][]{{4, 4}, {3, 4}, {2, 4}};
@@ -133,8 +138,8 @@ public class GameService {
                 case 3 -> "UP";
                 default -> "RIGHT";
             };
-            
-            
+
+
             Snake snake = new Snake();
             snake.setGame(game);
             snake.setUserId(playerId);
@@ -150,25 +155,35 @@ public class GameService {
 
     public void start(Game game) {
         new Thread(() -> { // Startet die Game-Loop in einem eigenen Thread
-            try {startCountdown(game, 5);}
-            catch (IOException e) {throw new RuntimeException(e);}
+            try {
+                startCountdown(game, 5);
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             while (!game.isGameOver()) {
                 updateGameState(game);
-                game.setTimestamp(game.getTimestamp()-0.20f);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
+                game.setTimestamp(game.getTimestamp() - 0.20f);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
                 try {
                     broadcastGameState(game); // Sendet Spielzustand an alle WebSocket-Clients
                 }
                 catch (IOException e) {
-                    throw new RuntimeException(e);}
+                    throw new RuntimeException(e);
+                }
                 try {
                     Thread.sleep(200); // Wartezeit für den nächsten Loop (z. B. 100ms pro Frame)
                 }
                 catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    break;}
+                    break;
+                }
             }
-            try {endGame(game); } // send winner to FE etc//
-            catch (IOException e) {throw new RuntimeException(e);}
+            try {
+                endGame(game);
+            } // send winner to FE etc//
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }).start();
     }
 
@@ -196,6 +211,45 @@ public class GameService {
         // Füge die Cookie-Positionen zu den JSON-Daten hinzu
         message.set("cookies", mapper.valueToTree(cookiePositions));
 
+        // Extrahiere die Golden Cookies aus der Items-Liste
+        List<int[]> goldenCookiePositions = new ArrayList<>();
+        for (Item item : game.getItems()) {
+            if ("powerup".equals(item.getType()) && item instanceof GoldenCookie) {
+                goldenCookiePositions.add(item.getPosition());
+            }
+        }
+        // Füge die Golden Cookie-Positionen zu den JSON-Daten hinzu
+        message.set("goldenCookies", mapper.valueToTree(goldenCookiePositions));
+
+        // Extrahiere die ReverseControl-Items aus der Items-Liste
+        List<int[]> reverseControlPositions = new ArrayList<>();
+        for (Item item : game.getItems()) {
+            if ("powerup".equals(item.getType()) && item instanceof ReverseControl) {
+                reverseControlPositions.add(item.getPosition());
+            }
+        }
+        // Füge die ReverseControl-Positionen zu den JSON-Daten hinzu
+        message.set("reverseControls", mapper.valueToTree(reverseControlPositions));
+
+        // Extrahiere die Divider-Items aus der Items-Liste
+        List<int[]> dividerPositions = new ArrayList<>();
+        for (Item item : game.getItems()) {
+            if ("powerup".equals(item.getType()) && item instanceof Divider) {
+                dividerPositions.add(item.getPosition());
+            }
+        }
+        // Füge die Divider-Positionen zu den JSON-Daten hinzu
+        message.set("dividers", mapper.valueToTree(dividerPositions));
+
+        List<int[]> multiplierPositions = new ArrayList<>();
+        for (Item item : game.getItems()) {
+            if ("powerup".equals(item.getType()) && item instanceof Multiplier) {
+                multiplierPositions.add(item.getPosition());
+            }
+        }
+        // Füge die Divider-Positionen zu den JSON-Daten hinzu
+        message.set("multipliers", mapper.valueToTree(multiplierPositions));
+
 
         // Get WebSocketHandler lazily only when needed
         WebSocketHandler webSocketHandler = getWebSocketHandler();
@@ -220,23 +274,26 @@ public class GameService {
         String winnerName = game.getLeaderboard().get(0);
         if (winnerName != null) {
             User winner = userRepository.findByUsername(winnerName);
-            winner.setWins(winner.getWins()+1);
+            winner.setWins(winner.getWins() + 1);
             userRepository.save(winner);
             logger.info("User {} won the game!", winnerName);
         }
-        //update level stats
+        //update level stats + playedGames + winstreak
         for (Long playerId : game.getLobby().getParticipantIds()) {
             Optional<User> currentUser = userRepository.findById(playerId);
             if (currentUser.isPresent()) {
                 User user = currentUser.get();
-                user.setPlayedGames(user.getPlayedGames()+1);
+                user.setPlayedGames(user.getPlayedGames() + 1);
                 int points = 1 + (user.getWins() / 2) + (user.getKills() / 4);
-                double newLevel = 5 * Math.sqrt((double)points/4) - 1;
+                double newLevel = 5 * Math.sqrt((double) points / 4) - 1;
                 user.setLevel(newLevel);
+                // update winstreak
+                user.setWinRate(user.getWins() / user.getPlayedGames());
                 userRepository.save(user);
                 userRepository.flush();
                 logger.info("User {} reached level {}!", user.getUsername(), user.getLevel());
-            } else {
+            }
+            else {
                 logger.error("User {} not found!", playerId);
             }
         }
@@ -245,7 +302,7 @@ public class GameService {
         ObjectNode message = mapper.createObjectNode();
         message.put("type", "gameEnd");
         message.put("rank", mapper.valueToTree(leaderboard));
-        message.put("reason","Last survivor");
+        message.put("reason", "Last survivor");
         WebSocketHandler webSocketHandler = getWebSocketHandler();
         webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
     }
@@ -267,6 +324,9 @@ public class GameService {
                 snake.setCoordinates(new int[0][0]); // Set coordinates to empty to mark as dead
                 game.addLeaderboardEntry(snake.getUsername());
             }
+            if (snake.getCoordinates().length != 0) {
+                checkPowerupCollision(snake);
+            }
         }
         if (aliveSnakes.size() == 1) {
             Snake winnerSnake = aliveSnakes.get(0);
@@ -274,13 +334,36 @@ public class GameService {
         }
 
 
-
         // Spawne ggf. neue Items (mit 25% Chance)
         Random random = new Random();
         double chance = random.nextDouble();
-        if (chance < game.getCookieSpawnRate()) { // 20 % Chance
+        if (chance < game.getCookieSpawnRate()) {
             spawnItem(game);
         }
+    }
+
+    private void checkPowerupCollision(Snake snake) {
+        // Position des Kopfes der Schlange abrufen
+        int[] head = snake.getCoordinates()[0]; // Der Kopf ist der erste Punkt im Koordinatenarray
+
+        // Durchlaufen der Items im Spiel (Game)
+        for (Item item : snake.getGame().getItems()) {
+            // Prüfen, ob das aktuelle Item vom Typ "cookie" ist
+            if ("powerup".equals(item.getType())) {
+                int[] powerupPosition = item.getPosition(); // Cookie-Position abrufen
+
+                // Prüfen, ob die Kopfposition mit der Cookie-Position übereinstimmt
+                if (head[0] == powerupPosition[0] && head[1] == powerupPosition[1]) {
+                    // Kollision -> Entfernt den Cookie aus dem Spiel
+                    item.applyEffect(snake);
+                    snake.getGame().getItems().remove(item);
+                    return; // Eine Kollision wurde festgestellt
+                }
+            }
+        }
+
+        // Keine Kollision gefunden
+        return;
     }
 
     private void spawnCookiesOnDeath(Snake snake, Game game) {
@@ -295,7 +378,7 @@ public class GameService {
                 }
             }
             if (!alreadyInGame) {
-                Item item = new Item(coordinate, "cookie");
+                Item item = new Cookie(coordinate, "cookie");
                 game.addItem(item);
             }
         }
@@ -310,14 +393,14 @@ public class GameService {
             occupied = false;
             x = random.nextInt(30); // 1 bis 20
             y = random.nextInt(25); // 1 bis 20
-            for (Snake snake : game.getSnakes()){
+            for (Snake snake : game.getSnakes()) {
                 for (int[] coordinate : snake.getCoordinates())
                     if (coordinate[0] == x && coordinate[1] == y) {
                         occupied = true;
                         break;
-                }
+                    }
             }
-            for (Item item: game.getItems()) {
+            for (Item item : game.getItems()) {
                 if (item.getPosition()[0] == x && item.getPosition()[1] == y) {
                     occupied = true;
                     break;
@@ -325,23 +408,54 @@ public class GameService {
             }
 
         }
-        Item item = new Item(new int[]{x, y}, "cookie");
+        if (game.getPowerupsWanted()){
+            Random random1 = new Random();
+            // spawn golden Cookie
+            double chance = random1.nextDouble();
+            if (chance < 0.00667) {
+                Item item = new GoldenCookie(new int[]{x, y}, "powerup");
+                game.addItem(item);
+            }
+            // spawn Reverse Control
+            if (chance < 0.01333) {
+                Item item = new ReverseControl(new int[]{x, y}, "powerup");
+                game.addItem(item);
+            }
+            // spawn Divider
+            if (chance < 0.02) {
+                Item item = new Divider(new int[]{x, y}, "powerup");
+                game.addItem(item);
+            }
+
+            return;
+        }
+        Item item = new Cookie(new int[]{x, y}, "cookie");
         game.addItem(item);
     }
 
     public void respondToKeyInputs(Game game, User user, String direction) {
         for (Snake snake : game.getSnakes()) {
             if (snake.getUserId().equals(user.getId())) {
-                if (direction.equals("UP") && snake.getDirection().equals("DOWN") && snake.getDirectionQueue().isEmpty()) {}
-                else if (direction.equals("DOWN") && snake.getDirection().equals("UP") && snake.getDirectionQueue().isEmpty()) {}
-                else if (direction.equals("LEFT") && snake.getDirection().equals("RIGHT") && snake.getDirectionQueue().isEmpty()) {}
-                else if (direction.equals("RIGHT") && snake.getDirection().equals("LEFT") && snake.getDirectionQueue().isEmpty()) {}
+                if (direction.equals("UP") && snake.getDirection().equals("DOWN") && snake.getDirectionQueue().isEmpty()) {
+                }
+                else if (direction.equals("DOWN") && snake.getDirection().equals("UP") && snake.getDirectionQueue().isEmpty()) {
+                }
+                else if (direction.equals("LEFT") && snake.getDirection().equals("RIGHT") && snake.getDirectionQueue().isEmpty()) {
+                }
+                else if (direction.equals("RIGHT") && snake.getDirection().equals("LEFT") && snake.getDirectionQueue().isEmpty()) {
+                }
 
-                else if (direction.equals("DOWN") && snake.getDirection().equals("DOWN") && snake.getDirectionQueue().isEmpty()) {}
-                else if (direction.equals("UP") && snake.getDirection().equals("UP") && snake.getDirectionQueue().isEmpty()) {}
-                else if (direction.equals("LEFT") && snake.getDirection().equals("LEFT") && snake.getDirectionQueue().isEmpty()) {}
-                else if (direction.equals("RIGHT") && snake.getDirection().equals("RIGHT") && snake.getDirectionQueue().isEmpty()) {}
-                else {snake.addDirectionQueue(direction);}
+                else if (direction.equals("DOWN") && snake.getDirection().equals("DOWN") && snake.getDirectionQueue().isEmpty()) {
+                }
+                else if (direction.equals("UP") && snake.getDirection().equals("UP") && snake.getDirectionQueue().isEmpty()) {
+                }
+                else if (direction.equals("LEFT") && snake.getDirection().equals("LEFT") && snake.getDirectionQueue().isEmpty()) {
+                }
+                else if (direction.equals("RIGHT") && snake.getDirection().equals("RIGHT") && snake.getDirectionQueue().isEmpty()) {
+                }
+                else {
+                    snake.addDirectionQueue(direction);
+                }
             }
         }
     }
@@ -349,17 +463,29 @@ public class GameService {
     public void updateSnakeDirection(Snake snake) {
         if (snake.getDirectionQueue().size() > 0) {
             String newDirection = snake.popDirectionQueue();
+
             if (newDirection.equals("UP") && !snake.getDirection().equals("DOWN")) {
                 snake.setDirection(newDirection);
-            } else if (newDirection.equals("DOWN") && !snake.getDirection().equals("UP")) {
+            }
+            else if (newDirection.equals("DOWN") && !snake.getDirection().equals("UP")) {
                 snake.setDirection(newDirection);
-            } else if (newDirection.equals("LEFT") && !snake.getDirection().equals("RIGHT")) {
+            }
+            else if (newDirection.equals("LEFT") && !snake.getDirection().equals("RIGHT")) {
                 snake.setDirection(newDirection);
-            } else if (newDirection.equals("RIGHT") && !snake.getDirection().equals("LEFT")) {
+            }
+            else if (newDirection.equals("RIGHT") && !snake.getDirection().equals("LEFT")) {
                 snake.setDirection(newDirection);
+            }
+            // check if ReverseControl Effect is active (Powerup)
+            for (Item powerup : snake.getEffects()) {
+                if (powerup instanceof ReverseControl) {
+                    ((ReverseControl) powerup).revertMovement(snake);
+                    break;
+                }
             }
         }
     }
+
     private void startCountdown(Game game, int seconds) throws IOException {
         for (int i = seconds; i > 0; i--) {
             logger.info("Broadcasting countdown for game: {}", game.getGameId());
@@ -389,20 +515,23 @@ public class GameService {
             // Warte 1 Sekunde vor der nächsten Iteration
             try {
                 Thread.sleep(1000); // 1000 Millisekunden = 1 Sekunde
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 logger.error("Countdown wurde unterbrochen: {}", e.getMessage());
                 break; // Beende die Schleife bei Unterbrechung
             }
         }
     }
+
     public void rankRemainingPlayers(Game game) {
         List<Snake> remainingPlayers = new ArrayList<>();
 
         for (Snake snake : game.getSnakes()) {
             if (snake.getCoordinates().length == 0) {
                 continue;
-            } else {
+            }
+            else {
                 remainingPlayers.add(snake);
             }
         }
@@ -411,7 +540,7 @@ public class GameService {
         remainingPlayers.sort((s1, s2) -> Integer.compare(s2.getCoordinates().length, s1.getCoordinates().length));
         // Liste umkehren
         Collections.reverse(remainingPlayers);
-        for (Snake player : remainingPlayers){
+        for (Snake player : remainingPlayers) {
             game.addLeaderboardEntry(player.getUsername());
             User user = userRepository.findByUsername(player.getUsername());
             if (user.getLengthPR() < player.getCoordinates().length) {

@@ -3,6 +3,7 @@ package ch.uzh.ifi.hase.soprafs24.service;
 import javax.transaction.Transactional;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Item;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Multiplier;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.handler.WebSocketHandler;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
@@ -54,10 +55,15 @@ public class SnakeService {
         }
         // Überprüfe auf Cookie-Kollision
         boolean ateCookie = checkCookieCollision(snake);
-
+        if (ateCookie) {
+            snake.addGrowCount();
+            for (Item effect : snake.getEffects()) {
+                if (effect instanceof Multiplier){((Multiplier) effect).multiplyCookie(snake);break;}
+            }
+        }
         // Neues Koordinaten-Array erstellen
         int[][] newCoordinates;
-        if (ateCookie) {
+        if (snake.getGrowCount()>=1) {
             // Wenn ein Cookie gegessen wurde, behalten wir den Schwanz (Schlange wächst)
             newCoordinates = new int[coordinates.length + 1][];
         } else {
@@ -65,8 +71,9 @@ public class SnakeService {
             newCoordinates = new int[coordinates.length][];
         }
         newCoordinates[0] = newHead;
-        if (ateCookie) {
+        if (snake.getGrowCount()>=1) {
             System.arraycopy(coordinates, 0, newCoordinates, 1, coordinates.length);
+            snake.removeGrowCount();
         }else{
         System.arraycopy(coordinates, 0, newCoordinates, 1, coordinates.length-1);
         }
