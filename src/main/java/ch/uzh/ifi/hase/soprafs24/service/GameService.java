@@ -1,6 +1,8 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
 import ch.uzh.ifi.hase.soprafs24.entity.*;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerdowns.Divider;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerdowns.ReverseControl;
 import ch.uzh.ifi.hase.soprafs24.entity.Powerups.*;
 import ch.uzh.ifi.hase.soprafs24.handler.WebSocketHandler;
 import ch.uzh.ifi.hase.soprafs24.repository.LobbyRepository;
@@ -351,6 +353,33 @@ public class GameService {
             // Prüfen, ob das aktuelle Item vom Typ "cookie" ist
             if ("powerup".equals(item.getType())) {
                 int[] powerupPosition = item.getPosition(); // Cookie-Position abrufen
+
+                // könnte fourCoordinate Powerdown sein
+                if (item instanceof Divider) {
+                    int[][] powerupFourPositions = ((Divider) item).getFourPositions();
+                    // Prüfe Kollision mit allen vier Positionen des Dividers
+                    for (int[] powerupFourPosition : powerupFourPositions) {
+                        if (head[0] == powerupFourPosition[0] && head[1] == powerupFourPosition[1]) {
+                            // Kollision -> Entfernt den Divider aus dem Spiel und wendet den Effekt an
+                            item.applyEffect(snake);
+                            snake.getGame().getItems().remove(item);
+                            return; // Eine Kollision wurde festgestellt
+                        }
+                    }
+                }
+                if (item instanceof ReverseControl) {
+                    int[][] powerupFourPositions = ((ReverseControl) item).getFourPositions();
+                    // Prüfe Kollision mit allen vier Positionen des Dividers
+                    for (int[] powerupFourPosition : powerupFourPositions) {
+                        if (head[0] == powerupFourPosition[0] && head[1] == powerupFourPosition[1]) {
+                            // Kollision -> Entfernt den Divider aus dem Spiel und wendet den Effekt an
+                            item.applyEffect(snake);
+                            snake.getGame().getItems().remove(item);
+                            return; // Eine Kollision wurde festgestellt
+                        }
+                    }
+                }
+
 
                 // Prüfen, ob die Kopfposition mit der Cookie-Position übereinstimmt
                 if (head[0] == powerupPosition[0] && head[1] == powerupPosition[1]) {
