@@ -115,11 +115,7 @@ public class LobbyService {
         savedLobby.addParticipant(admin);
 
         // Add a bot to the lobby
-
-        User bot = new User();
-        bot.setUsername("Bot_1");
-        bot.setPassword("bot_password"); 
-        User createdBot = userService.createUser(bot);
+        User createdBot = userService.createBot();
         createdBot.setIsBot(true);
 
         savedLobby.addParticipant(createdBot);

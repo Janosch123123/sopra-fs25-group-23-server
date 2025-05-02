@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.Date;
 
@@ -152,5 +153,54 @@ public class UserService {
       log.error("Conflict: User with username {} already exists", userToBeCreated.getUsername());
       throw new ResponseStatusException(HttpStatus.CONFLICT, String.format(baseErrorMessage, "username", "is"));
     }
+  }
+
+  public User createBot() {
+    User bot = new User();
+
+    String[] playerNames = {
+      "ShadowHunter", "GhostRider", "DragonSlayer", "NightWolf", "ThunderStrike",
+      "IronFist", "MysticWarrior", "SilentArrow", "DarkPhoenix", "FrostBlade",
+      "CrimsonKnight", "StormBreaker", "FlameWarden", "IceDagger", "SteelShadow",
+      "VenomFang", "ChaosBringer", "LoneRanger", "FireHawk", "BladeMaster",
+      "SkyWalker", "ThunderWolf", "ShadowFury", "MysticFlame", "DarkRaven",
+      "FrostWolf", "CrimsonFlame", "StormRider", "FlameShadow", "IcePhoenix",
+      "SteelFang", "VenomBlade", "ChaosHunter", "LoneWolf", "FireBlade",
+      "BladeRunner", "SkyHunter", "ThunderBlade", "ShadowWalker", "MysticArrow",
+      "DarkHunter", "FrostArrow", "CrimsonRider", "StormFang", "FlamePhoenix",
+      "IceKnight", "SteelRider", "VenomShadow", "ChaosKnight", "LonePhoenix",
+      "FireKnight", "BladeHunter", "SkyFury", "ThunderArrow", "ShadowKnight",
+      "MysticFang", "DarkBlade", "FrostFury", "CrimsonHunter", "StormArrow",
+      "FlameKnight", "IceFury", "SteelHunter", "VenomPhoenix", "ChaosFury",
+      "LoneArrow", "FireFury", "BladeFang", "SkyKnight", "ThunderPhoenix",
+      "ShadowFang", "MysticKnight", "DarkFang", "FrostKnight", "CrimsonFang",
+      "StormKnight", "FlameFang", "IceArrow", "SteelArrow", "VenomFury",
+      "ChaosArrow", "LoneFang", "FireArrow", "BladeArrow", "SkyFang",
+      "ThunderFang", "ShadowArrow", "MysticFury", "DarkArrow", "FrostPhoenix",
+      "CrimsonPhoenix", "StormPhoenix", "FlameArrow", "IceFang", "SteelFang",
+      "VenomKnight", "ChaosPhoenix", "LoneKnight", "FirePhoenix", "BladePhoenix"
+    };
+    Random random = new Random();
+    String randomName = playerNames[random.nextInt(playerNames.length)];
+    bot.setUsername(randomName);
+    bot.setPassword("u.4*2+?3asdf+-.m,::WE"); 
+    bot.setStatus(UserStatus.ONLINE);
+    bot.setCreationDate(new Date());
+    bot.setToken(UUID.randomUUID().toString());
+    bot.setLevel(1.0);
+    bot.setWins(0);
+    bot.setKills(0);
+    bot.setLevel(Math.ceil(random.nextDouble() * 7));
+    bot.setPlayedGames(0);
+    bot.setLengthPR(0);
+    bot.setWinRate(0);
+    
+    checkIfUserExists(bot);
+
+    bot = userRepository.save(bot);
+    userRepository.flush();
+
+    return bot;
+
   }
 }
