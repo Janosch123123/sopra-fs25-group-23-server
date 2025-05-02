@@ -30,6 +30,7 @@ public class GameService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final SnakeService snakeService;
+    private final BotService botService;
     private final ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(GameService.class);
 
@@ -38,12 +39,13 @@ public class GameService {
 
     @Autowired
     public GameService(LobbyRepository lobbyRepository, UserRepository userRepository,
-                       UserService userService, ApplicationContext applicationContext, SnakeService snakeService) {
+                       UserService userService, ApplicationContext applicationContext, SnakeService snakeService, BotService botService) {
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
         this.userService = userService;
         this.applicationContext = applicationContext;
         this.snakeService = snakeService;
+        this.botService = botService;
     }
 
     // Add a method to get WebSocketHandler lazily when needed
@@ -143,11 +145,14 @@ public class GameService {
 
 
             Snake snake = new Snake();
+            User user = userService.getUserById(playerId);
+            boolean isBot = user.getIsBot();
             snake.setGame(game);
             snake.setUserId(playerId);
             snake.setUsername(userService.getUserById(playerId).getUsername());
             snake.setDirection(direction);
             snake.setCoordinates(coordinate);
+            snake.setIsBot(isBot);
             snake.setLength(2);
             snake.setHead(new int[]{2, 2});
             snake.setTail(new int[]{2, 1});
@@ -316,7 +321,11 @@ public class GameService {
                 continue; // already dead
             }
             aliveSnakes.add(snake);
-            updateSnakeDirection(snake); // checks for direction changes in queue
+            if (snake.getIsBot()) {
+                botService.updateBot(game, snake);
+            } else {
+                updateSnakeDirection(snake);
+            }
             snakeService.moveSnake(snake);
 
             if (snakeService.checkCollision(snake, game)) {

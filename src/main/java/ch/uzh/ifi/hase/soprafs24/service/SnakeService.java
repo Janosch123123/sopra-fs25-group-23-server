@@ -55,6 +55,9 @@ public class SnakeService {
         }
         // Überprüfe auf Cookie-Kollision
         boolean ateCookie = checkCookieCollision(snake);
+        if (snake.getIsBot()) {
+            System.out.println("BOT ATE COOKIE: " + ateCookie);
+        }
         if (ateCookie) {
             snake.addGrowCount();
             for (Item effect : snake.getEffects()) {

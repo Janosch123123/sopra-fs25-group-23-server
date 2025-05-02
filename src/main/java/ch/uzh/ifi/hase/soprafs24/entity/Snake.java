@@ -15,6 +15,7 @@ public class Snake {
     private List<String> directionQueue = new ArrayList<>();
     private List<Item> effects = new ArrayList<>();
     private int growCount = 0;
+    private boolean isBot = false;
 
     public void addGrowCount(){this.growCount++;}
     public int getGrowCount(){return growCount;}
@@ -106,5 +107,12 @@ public class Snake {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public void setIsBot(boolean isBot) {
+        this.isBot = isBot;
+    }
+    public boolean getIsBot() {
+        return this.isBot;
     }
 }

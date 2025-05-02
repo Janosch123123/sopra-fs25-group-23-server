@@ -60,6 +60,8 @@ public class User implements Serializable {
   private int lengthPR;
 
   @Column double winRate;
+  
+  @Column boolean isBot = false;
 
   public double getWinRate() {return winRate;}
   public void setWinRate(int winRate) {this.winRate = winRate;}
@@ -148,5 +150,13 @@ public class User implements Serializable {
 
   public void setLobbyCode(long lobbyCode) {
     this.lobbyCode = lobbyCode;
+  }
+
+  public void setIsBot(boolean isBot) {
+    this.isBot = isBot;
+  }
+
+  public boolean getIsBot() {
+    return this.isBot;
   }
 }

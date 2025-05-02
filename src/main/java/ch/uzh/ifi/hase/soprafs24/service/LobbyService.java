@@ -113,6 +113,18 @@ public class LobbyService {
 
         // Add admin as first participant
         savedLobby.addParticipant(admin);
+
+        // Add a bot to the lobby
+
+        User bot = new User();
+        bot.setUsername("Bot_1");
+        bot.setPassword("bot_password"); 
+        User createdBot = userService.createUser(bot);
+        createdBot.setIsBot(true);
+
+        savedLobby.addParticipant(createdBot);
+
+        // Save the updated lobby
         lobbyRepository.save(savedLobby);
 
         log.info("Created new lobby with ID: {} and admin: {}", savedLobby.getId(), admin.getUsername());
