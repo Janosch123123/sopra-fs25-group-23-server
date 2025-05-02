@@ -84,7 +84,7 @@ public class LobbyService {
             return createPublicLobby(user);
         } else {
             for (Lobby lobby : lobbies) {
-                if (lobby.getParticipantIds().size() < 3) {
+                if (lobby.getParticipantIds().size() < 4) {
                     lobby.addParticipant(user);
                     lobbyRepository.save(lobby);
 
