@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
 import ch.uzh.ifi.hase.soprafs24.constant.UserStatus;
+import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.Date;
@@ -201,6 +203,12 @@ public class UserService {
     userRepository.flush();
 
     return bot;
-
+  }
+  public void deleteUser(User user) {
+    Optional<User> userOptional = userRepository.findById(user.getId());
+    if (userOptional.isPresent()) {
+        // Delete the user from the repository
+        userRepository.deleteById(user.getId());
+    } 
   }
 }

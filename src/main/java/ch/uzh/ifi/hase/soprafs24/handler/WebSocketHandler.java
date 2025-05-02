@@ -355,7 +355,23 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     // If not, just update the lobby
                     lobbyService.updateLobby(userLobby);
                 }
-                
+                // if all participants are bots, also delete the lobby + delete the bot accounts
+                List<Long> participants = userLobby.getParticipantIds();
+                boolean onlyBots = true;
+                for (Long participantId : participants) {
+                    User participant = userService.getUserById(participantId);
+                    if (participant.getIsBot() == false) {
+                        onlyBots = false;
+                    }
+                }
+                if (onlyBots) {
+                    for (Long participantId : participants) {
+                        User participant = userService.getUserById(participantId);
+                        userRepository.delete(participant);
+                        lobbyService.deleteLobby(userLobby.getId());
+                    }
+                    
+                }
                 sendLobbyStateToUsers(userLobby.getId());   
                 logger.info("User {} removed from lobby {}", userId, userLobby.getId());
 
