@@ -203,7 +203,7 @@ public class LobbyService {
             Optional<Lobby> lobby = lobbyRepository.findById(lobbyCode);
             if (lobby.isPresent()) {
                 Lobby foundLobby = lobby.get();
-                return foundLobby.getParticipantIds().size() <= 3;
+                return foundLobby.getParticipantIds().size() <= 3 && !foundLobby.isSolo();
             }
 
             return true;

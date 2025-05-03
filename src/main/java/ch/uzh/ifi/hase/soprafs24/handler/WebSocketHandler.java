@@ -176,7 +176,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     response.put("valid", isValid);
                     if (!isValid){
                         if (lobbyRepository.findById(lobbyCode).isPresent()) {
-                            response.put("reason", "full");
+                            response.put("reason", "lobby is already full or is set to solo");
                         }
                         else{
                             response.put("reason", "invalid");
@@ -233,6 +233,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
                         powerupsWanted = settingsNode.get("powerupsWanted").asBoolean();
                     }
                     // Changed from static to instance method call
+                    if (!lobby.isSolo()) {
+                        if (lobby.getParticipantIds().size() == 1){
+                            sendErrorMessage(session, "Not enough players to start the game");
+                            return;
+                        }
+                    } 
                     Game game = gameService.createGame(lobby, cookieSpawnRateNode, powerupsWanted);
                     lobby.setGameId(game.getGameId());
                     lobbyRepository.save(lobby);
@@ -311,6 +317,41 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
                     session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
                     logger.info("Created lobby for session: {}", session.getId());
+                } catch (Exception e) {
+                    logger.error("Error creating lobby", e);
+                    sendErrorMessage(session, "Failed to create lobby: " + e.getMessage());
+                }
+            } else if ("soloLobby".equals(type)) {
+                // Extract token from session
+                String token = getTokenFromSession(session);
+                try {
+                    // Get user from token
+                    User user = userService.getUserByToken(token);
+
+                    if (user == null) {
+                        sendErrorMessage(session, "Invalid token or user not found");
+                        return;
+                    }
+
+                    // Direct call to LobbyService's createLobby method
+                    Lobby lobby = lobbyService.createPrivateLobby(user);
+                    lobby.setSolo(true);
+                    lobby.setVisibility("private");
+
+                    // Save the updated lobby with the new solo and visibility values
+                    lobbyRepository.save(lobby);  // Or use a service method like lobbyService.updateLobby(lobby)
+
+                    lobbyService.addLobbyCodeToUser(user, lobby.getId());
+                    // Send success response with the lobby ID
+                    ObjectNode response = mapper.createObjectNode();
+                    response.put("type", "lobby_created");
+                    response.put("lobbyId", lobby.getId());
+                    response.put("solo", lobby.isSolo());
+
+                    session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+                    logger.info("Created lobby for session: {}", session.getId());
+
+
                 } catch (Exception e) {
                     logger.error("Error creating lobby", e);
                     sendErrorMessage(session, "Failed to create lobby: " + e.getMessage());
