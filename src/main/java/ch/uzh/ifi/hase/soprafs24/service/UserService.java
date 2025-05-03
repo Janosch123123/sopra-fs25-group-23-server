@@ -102,15 +102,12 @@ public class UserService {
   }
 
   public ResponseEntity<String> logoutUser(String token) {
-    System.out.println("Received Token: " + token);
     User user = userRepository.findByToken(token);
     if (user != null) {
-      System.out.println("User found with token: " + user.getToken());
       user.setStatus(UserStatus.OFFLINE);
       userRepository.save(user);
       return ResponseEntity.ok("{\"message\": \"Logout successful\"}");
     } else {
-      System.out.println("No user found with token: " + token);
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
     }
   }
@@ -196,6 +193,7 @@ public class UserService {
     bot.setPlayedGames(0);
     bot.setLengthPR(0);
     bot.setWinRate(0);
+    bot.setIsBot(true);
     
     checkIfUserExists(bot);
 

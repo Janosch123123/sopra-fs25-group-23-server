@@ -61,7 +61,7 @@ public class Lobby implements Serializable {
     }
 
     // Helper method to add a participant ID
-    public void addParticipantId(Long userId) {
+    public synchronized void addParticipantId(Long userId) {
         if (!this.participantIds.contains(userId)) {
             this.participantIds.add(userId);
         }
@@ -73,7 +73,7 @@ public class Lobby implements Serializable {
     }
 
     // Convenience method to add a participant using User object
-    public void addParticipant(User user) {
+    public synchronized void addParticipant(User user) {
         if (user != null && user.getId() != null) {
             addParticipantId(user.getId());
         }

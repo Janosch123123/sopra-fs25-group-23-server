@@ -55,9 +55,6 @@ public class SnakeService {
         }
         // Überprüfe auf Cookie-Kollision
         boolean ateCookie = checkCookieCollision(snake);
-        if (snake.getIsBot()) {
-            System.out.println("BOT ATE COOKIE: " + ateCookie);
-        }
         if (ateCookie) {
             snake.addGrowCount();
             for (Item effect : snake.getEffects()) {
@@ -81,7 +78,6 @@ public class SnakeService {
         System.arraycopy(coordinates, 0, newCoordinates, 1, coordinates.length-1);
         }
         snake.setCoordinates(newCoordinates);
-        System.out.println("Snake moved to: " + newHead[0] + ", " + newHead[1]);
 
     }
 
@@ -156,7 +152,6 @@ public class SnakeService {
 
                     sendDeathMsg(snake, game);
 
-                    System.out.println("Collision detected: " + head[0] + ", " + head[1]);
                     return true;
                 }
             }
@@ -173,12 +168,10 @@ public class SnakeService {
         message.put("coordinates",mapper.valueToTree(snake.getCoordinates()));
         WebSocketHandler webSocketHandler = getWebSocketHandler();
         try {
-            System.out.println("Sending message to lobby: " + game.getLobby().getId());
             webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            System.out.println("Error sending message to lobby: " + game.getLobby().getId());
         }
         /////
     }
