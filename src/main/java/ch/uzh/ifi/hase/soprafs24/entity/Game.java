@@ -21,7 +21,7 @@ public class Game {
         this.snakes = new ArrayList<>(); // Initialize the snakes list
         this.items = new ArrayList<>(); // Initialize the items list
         this.gameOver = false; // Initialize gameOver flag
-        this.timestamp = 180;
+        this.timestamp = 200000;
         this.winner = null;
         this.leaderboard = new ArrayList<>();
         this.cookieSpawnRate = 0.3;
