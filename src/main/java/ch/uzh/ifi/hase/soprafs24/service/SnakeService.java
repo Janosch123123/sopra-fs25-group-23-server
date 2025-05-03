@@ -5,6 +5,7 @@ import javax.transaction.Transactional;
 import ch.uzh.ifi.hase.soprafs24.entity.Item;
 import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Multiplier;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
 import ch.uzh.ifi.hase.soprafs24.handler.WebSocketHandler;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 
@@ -112,6 +113,9 @@ public class SnakeService {
         if (snake.getCoordinates().length == 0) {
             return false;
         }
+
+        Lobby lobby = game.getLobby();
+        boolean isSoloLobby = lobby.isSolo();
         
         int[] head = snake.getCoordinates()[0];
         //check for collision with walls
@@ -119,10 +123,12 @@ public class SnakeService {
             // updating length-PR
             String username = snake.getUsername();
             User victim = userRepository.findByUsername(username);
-            if (victim.getLengthPR() < snake.getCoordinates().length) {
-                victim.setLengthPR(snake.getCoordinates().length);
-                userRepository.save(victim);
-                userRepository.flush();
+            if (!isSoloLobby) {
+                if (victim.getLengthPR() < snake.getCoordinates().length) {
+                    victim.setLengthPR(snake.getCoordinates().length);
+                    userRepository.save(victim);
+                    userRepository.flush();
+                }
             }
             return true;
         }
@@ -148,10 +154,12 @@ public class SnakeService {
                     // updating length-PR
                     String username = snake.getUsername();
                     User victim = userRepository.findByUsername(username);
-                    if (victim.getLengthPR() < snake.getCoordinates().length) {
-                        victim.setLengthPR(snake.getCoordinates().length);
-                        userRepository.save(victim);
-                        userRepository.flush();
+                    if (isSoloLobby) {
+                        if (victim.getLengthPR() < snake.getCoordinates().length) {
+                            victim.setLengthPR(snake.getCoordinates().length);
+                            userRepository.save(victim);
+                            userRepository.flush();
+                        }
                     }
 
                     sendDeathMsg(snake, game);
