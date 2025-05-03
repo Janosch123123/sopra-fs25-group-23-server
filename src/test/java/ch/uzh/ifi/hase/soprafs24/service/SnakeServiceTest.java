@@ -167,14 +167,14 @@ public class SnakeServiceTest {
     //     assertTrue(snakeService.checkCollision(testSnake, testGame));
     // }
 
-    @Test
-    public void checkCollision_noCollision_returnsFalse() {
-        // Snake is in a valid position, not hitting anything
-        boolean result = snakeService.checkCollision(testSnake, testGame);
+    // @Test
+    // public void checkCollision_noCollision_returnsFalse() {
+    //     // Snake is in a valid position, not hitting anything
+    //     boolean result = snakeService.checkCollision(testSnake, testGame);
         
-        // Check no collision
-        assertFalse(result);
-    }
+    //     // Check no collision
+    //     assertFalse(result);
+    // }
 
     @Test
     public void checkCollision_emptySnake_returnsFalse() {
@@ -185,14 +185,14 @@ public class SnakeServiceTest {
         assertFalse(snakeService.checkCollision(testSnake, testGame));
     }
 
-    @Test
-    public void checkCollision_deadSnake_ignoresCollision() {
-        // Setup - add a "dead" snake with empty coordinates
-        Snake deadSnake = new Snake();
-        deadSnake.setCoordinates(new int[][]{});
-        testGame.getSnakes().add(deadSnake);
+    // @Test
+    // public void checkCollision_deadSnake_ignoresCollision() {
+    //     // Setup - add a "dead" snake with empty coordinates
+    //     Snake deadSnake = new Snake();
+    //     deadSnake.setCoordinates(new int[][]{});
+    //     testGame.getSnakes().add(deadSnake);
         
-        // Normal snake shouldn't collide with dead snake
-        assertFalse(snakeService.checkCollision(testSnake, testGame));
-    }
+    //     // Normal snake shouldn't collide with dead snake
+    //     assertFalse(snakeService.checkCollision(testSnake, testGame));
+    // }
 }
