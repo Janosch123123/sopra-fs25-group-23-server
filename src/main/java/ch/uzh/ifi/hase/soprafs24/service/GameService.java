@@ -30,6 +30,7 @@ public class GameService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final SnakeService snakeService;
+    private final BotService botService;
     private final ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(GameService.class);
 
@@ -38,12 +39,13 @@ public class GameService {
 
     @Autowired
     public GameService(LobbyRepository lobbyRepository, UserRepository userRepository,
-                       UserService userService, ApplicationContext applicationContext, SnakeService snakeService) {
+                       UserService userService, ApplicationContext applicationContext, SnakeService snakeService, BotService botService) {
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
         this.userService = userService;
         this.applicationContext = applicationContext;
         this.snakeService = snakeService;
+        this.botService = botService;
     }
 
     // Add a method to get WebSocketHandler lazily when needed
@@ -143,11 +145,14 @@ public class GameService {
 
 
             Snake snake = new Snake();
+            User user = userService.getUserById(playerId);
+            boolean isBot = user.getIsBot();
             snake.setGame(game);
             snake.setUserId(playerId);
             snake.setUsername(userService.getUserById(playerId).getUsername());
             snake.setDirection(direction);
             snake.setCoordinates(coordinate);
+            snake.setIsBot(isBot);
             snake.setLength(2);
             snake.setHead(new int[]{2, 2});
             snake.setTail(new int[]{2, 1});
@@ -272,12 +277,18 @@ public class GameService {
     public void endGame(Game game) throws IOException {
         rankRemainingPlayers(game);
 
+        // Check if this is a solo lobby
+        Lobby lobby = game.getLobby();
+        boolean isSoloLobby = lobby.isSolo();
+
         // update winning stats
         String winnerName = game.getLeaderboard().get(0);
         if (winnerName != null) {
             User winner = userRepository.findByUsername(winnerName);
-            winner.setWins(winner.getWins() + 1);
-            userRepository.save(winner);
+            if (!isSoloLobby) {
+                winner.setWins(winner.getWins()+1);
+                userRepository.save(winner);
+            }
             logger.info("User {} won the game!", winnerName);
         }
         //update level stats + playedGames + winRate
@@ -285,6 +296,7 @@ public class GameService {
             Optional<User> currentUser = userRepository.findById(playerId);
             if (currentUser.isPresent()) {
                 User user = currentUser.get();
+<<<<<<< HEAD
                 user.setPlayedGames(user.getPlayedGames() + 1);
                 int points = 1 + (user.getWins() / 2) + (user.getKills() / 4);
                 double newLevel = 5 * Math.sqrt((double) points / 4) - 1;
@@ -296,6 +308,19 @@ public class GameService {
                 user.setWinRate(newWinRate);
                 userRepository.save(user);
                 userRepository.flush();
+=======
+
+                if (!isSoloLobby) {
+                    user.setPlayedGames(user.getPlayedGames()+1);
+                    int points = 1 + (user.getWins() / 2) + (user.getKills() / 4);
+                    double newLevel = 5 * Math.sqrt((double)points/4) - 1;
+                    user.setLevel(newLevel);
+                    // update winstreak
+                    user.setWinRate(user.getWins() / user.getPlayedGames());
+                    userRepository.save(user);
+                    userRepository.flush();
+                }
+>>>>>>> 36207637e25970ec258809c91286bd6bc1fa99bb
                 logger.info("User {} reached level {}!", user.getUsername(), user.getLevel());
             }
             else {
@@ -319,7 +344,11 @@ public class GameService {
                 continue; // already dead
             }
             aliveSnakes.add(snake);
-            updateSnakeDirection(snake); // checks for direction changes in queue
+            if (snake.getIsBot()) {
+                botService.updateBot(game, snake);
+            } else {
+                updateSnakeDirection(snake);
+            }
             snakeService.moveSnake(snake);
 
             if (snakeService.checkCollision(snake, game)) {
@@ -568,17 +597,25 @@ public class GameService {
             }
         }
 
+        Lobby lobby = game.getLobby();
+        boolean isSoloLobby = lobby.isSolo();
+
         // Sortiere remainingPlayers nach der Größe von snake.getCoordinates()
         remainingPlayers.sort((s1, s2) -> Integer.compare(s2.getCoordinates().length, s1.getCoordinates().length));
         // Liste umkehren
+        logger.info("Sorting remaining players by length");
         Collections.reverse(remainingPlayers);
         for (Snake player : remainingPlayers) {
             game.addLeaderboardEntry(player.getUsername());
             User user = userRepository.findByUsername(player.getUsername());
-            if (user.getLengthPR() < player.getCoordinates().length) {
-                user.setLengthPR(player.getCoordinates().length);
-                userRepository.save(user);
-                userRepository.flush();
+            logger.info("Adding {} to leaderboard", player.getUsername());
+            if (!isSoloLobby) {
+                logger.info("So we are really going here even thow we shoudnt");
+                if (user.getLengthPR() < player.getCoordinates().length) {
+                    user.setLengthPR(player.getCoordinates().length);
+                    userRepository.save(user);
+                    userRepository.flush();
+                    }
             }
         }
 

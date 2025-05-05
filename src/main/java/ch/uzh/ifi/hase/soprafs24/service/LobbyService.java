@@ -3,20 +3,27 @@ package ch.uzh.ifi.hase.soprafs24.service;
 import ch.uzh.ifi.hase.soprafs24.entity.Game;
 import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.handler.WebSocketHandler;
 import ch.uzh.ifi.hase.soprafs24.repository.LobbyRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 // import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Transactional
@@ -28,9 +35,11 @@ public class LobbyService {
     private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final ApplicationContext applicationContext;
 
     // @Autowired
-    public LobbyService(LobbyRepository lobbyRepository, UserRepository userRepository, UserService userService) {
+    public LobbyService(LobbyRepository lobbyRepository, UserRepository userRepository, UserService userService, ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
         this.userService = userService;
@@ -87,8 +96,6 @@ public class LobbyService {
                 if (lobby.getParticipantIds().size() < 4) {
                     lobby.addParticipant(user);
                     lobbyRepository.save(lobby);
-
-                    System.out.println("User joined existing lobby");
                     return lobby;
                 }
             }
@@ -115,34 +122,63 @@ public class LobbyService {
         savedLobby.addParticipant(admin);
         lobbyRepository.save(savedLobby);
 
+        // Schedule bot additions
+        botAdder(savedLobby);
+        
         log.info("Created new lobby with ID: {} and admin: {}", savedLobby.getId(), admin.getUsername());
-
+        
         return savedLobby;
     }
+    private void botAdder(Lobby lobby) {
 
-    // /**
-    // * Creates a new lobby with user identified by token as admin
-    // *
-    // * @param token the authentication token for the user who will be admin
-    // * @return the created lobby
-    // * @throws IllegalArgumentException if token is invalid or user not found
-    // */
-    // public Lobby createLobbyFromToken(String token) {
-    // if (token == null || token.isEmpty()) {
-    // throw new IllegalArgumentException("Authentication token cannot be null or
-    // empty");
-    // }
+        Random random = new Random();
+        int randomInt = random.nextInt(6) + 5;       
+        addBotToLobbyAsync(lobby, randomInt);
+        
+    }
 
-    // // Get user from token
-    // User user = userService.getUserByToken(token);
+    private boolean checkIfGameStarted(Lobby lobby) {
+        return lobby.getGameId() != null;
+    }
 
-    // if (user == null) {
-    // throw new IllegalArgumentException("Invalid token or user not found");
-    // }
 
-    // // Use existing method to create the lobby with the found user
-    // return createPrivateLobby(user);
-    // }
+    private WebSocketHandler getWebSocketHandler() {
+        return applicationContext.getBean(WebSocketHandler.class);
+    }
+
+    private void addBotToLobbyAsync(Lobby lobby, int delayInSeconds) {
+        System.out.println("Scheduling bot addition for lobby: " + lobby.getId() + " in " + delayInSeconds + " seconds");
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.schedule(() -> {
+            System.out.println("IN THE SCHEDULE: " + lobby.getId());
+            addBotHelper(lobby);
+        }, delayInSeconds, TimeUnit.SECONDS);
+    }
+    
+    private void addBotHelper(Lobby lobby) {
+            try {
+                Lobby latestLobby = lobbyRepository.findById(lobby.getId())
+                .orElseThrow(() -> new IllegalStateException("Lobby not found with ID: " ));
+                if (latestLobby.getParticipantIds().size() < 4 && !checkIfGameStarted(latestLobby)) {
+                    User createdBot = userService.createBot();
+                    addLobbyCodeToUser(createdBot, latestLobby.getId());
+        
+                    latestLobby.addParticipant(createdBot);
+                    lobbyRepository.save(latestLobby);
+        
+                    WebSocketHandler webSocketHandler = getWebSocketHandler();
+                    webSocketHandler.sendLobbyStateToUsers(latestLobby.getId());
+
+                    if (latestLobby.getParticipantIds().size() < 4) {
+                        System.out.println("Adding another bot to lobby:" + latestLobby.getParticipantIds().size());
+                        botAdder(latestLobby);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Failed to add bot to lobby: {}", e.getMessage());
+            }
+        
+    }
 
     /**
      * Gets a lobby by its ID
@@ -167,7 +203,7 @@ public class LobbyService {
             Optional<Lobby> lobby = lobbyRepository.findById(lobbyCode);
             if (lobby.isPresent()) {
                 Lobby foundLobby = lobby.get();
-                return foundLobby.getParticipantIds().size() <= 3;
+                return foundLobby.getParticipantIds().size() <= 3 && !foundLobby.isSolo();
             }
 
             return true;
