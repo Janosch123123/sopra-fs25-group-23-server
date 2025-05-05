@@ -296,31 +296,17 @@ public class GameService {
             Optional<User> currentUser = userRepository.findById(playerId);
             if (currentUser.isPresent()) {
                 User user = currentUser.get();
-<<<<<<< HEAD
-                user.setPlayedGames(user.getPlayedGames() + 1);
-                int points = 1 + (user.getWins() / 2) + (user.getKills() / 4);
-                double newLevel = 5 * Math.sqrt((double) points / 4) - 1;
-                user.setLevel(newLevel);
-                userRepository.save(user);
-                userRepository.flush();
-                // update winRate
-                double newWinRate = (double) user.getWins() / user.getPlayedGames();
-                user.setWinRate(newWinRate);
-                userRepository.save(user);
-                userRepository.flush();
-=======
-
                 if (!isSoloLobby) {
                     user.setPlayedGames(user.getPlayedGames()+1);
                     int points = 1 + (user.getWins() / 2) + (user.getKills() / 4);
                     double newLevel = 5 * Math.sqrt((double)points/4) - 1;
                     user.setLevel(newLevel);
-                    // update winstreak
-                    user.setWinRate(user.getWins() / user.getPlayedGames());
+                    // update winRate
+                    double newWinRate = (double) user.getWins() / user.getPlayedGames();
+                    user.setWinRate(newWinRate);
                     userRepository.save(user);
                     userRepository.flush();
                 }
->>>>>>> 36207637e25970ec258809c91286bd6bc1fa99bb
                 logger.info("User {} reached level {}!", user.getUsername(), user.getLevel());
             }
             else {
