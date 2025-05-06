@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs24.handler;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Game;
+import ch.uzh.ifi.hase.soprafs24.entity.Snake;
 import ch.uzh.ifi.hase.soprafs24.repository.LobbyRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs24.service.GameService;
@@ -381,52 +382,89 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
         
         if (userId != null) {
-            // Use the LobbyService to find the lobby
-            Lobby userLobby = lobbyService.findLobbyForUser(userId);
-            
-            if (userLobby != null) {
-                // Remove user from the lobby's participants
-                userLobby.removeParticipantId(userId);
-
-                // Check if the user was the last one in the lobby
-                if (userLobby.getParticipantIds().isEmpty()) {
-                    // If the lobby is empty, delete it
-                    lobbyService.deleteLobby(userLobby.getId());
-                } else {
-                    // If not, just update the lobby
-                    lobbyService.updateLobby(userLobby);
-                }
-                // if all participants are bots, also delete the lobby + delete the bot accounts
-                List<Long> participants = userLobby.getParticipantIds();
-                boolean onlyBots = true;
-                for (Long participantId : participants) {
-                    User participant = userService.getUserById(participantId);
-                    if (participant.getIsBot() == false) {
-                        onlyBots = false;
+            User user = userService.getUserById(userId);
+            if (!user.getIsBot()) {
+                // Use the LobbyService to find the lobby
+                Lobby userLobby = lobbyService.findLobbyForUser(userId);
+                if (userLobby != null) {
+                    Game game = LobbyService.getGameByLobby(userLobby.getId());
+                    if (game != null && (!game.isGameOver() || game.getWinnerRun())) {
+                        int alive = 0;
+                        for (Snake snake : game.getSnakes()) {
+                            if (snake.getCoordinates().length > 0) {
+                                alive = alive + 1;
+                            }
+                        }
+                        if (alive == 1) {
+                            gameService.endGame(game);
+                            logger.info("Game ended for gameId {}", game.getGameId());
+                        }
+                        else {
+                            // update statistic for exiting player while game continues
+                            user = userService.getUserById(userId);
+                            user.setPlayedGames(user.getPlayedGames() + 1);
+                            user.setWinRate((double) user.getWins() / user.getPlayedGames());
+                            for (Snake snake : game.getSnakes()) {
+                                System.out.println(snake.getUserId());
+                                System.out.println(snake.getCoordinates().length);
+                                if (snake.getUserId().equals(userId)) {
+                                    if (user.getLengthPR() < snake.getCoordinates().length) {
+                                        user.setLengthPR(snake.getCoordinates().length);
+                                    }
+                                }
+                            }
+                            int points = 1 + (user.getWins() / 2) + (user.getKills() / 4);
+                            double newLevel = 5 * Math.sqrt((double) points / 4) - 1;
+                            user.setLevel(newLevel);
+                            userRepository.save(user);
+                            userRepository.flush();
+                        }
                     }
-                }
-                if (onlyBots) {
-                    for (Long participantId : participants) {
-                        User participant = userService.getUserById(participantId);
-                        userRepository.delete(participant);
+
+                    // Remove user from the lobby's participants
+                    userLobby.removeParticipantId(userId);
+
+                    // Check if the user was the last one in the lobby
+                    if (userLobby.getParticipantIds().isEmpty()) {
+                        // If the lobby is empty, delete it
                         lobbyService.deleteLobby(userLobby.getId());
                     }
-                    
+                    else {
+                        // If not, just update the lobby
+                        lobbyService.updateLobby(userLobby);
+                    }
+                    // if all participants are bots, also delete the lobby + delete the bot accounts
+                    List<Long> participants = userLobby.getParticipantIds();
+                    boolean onlyBots = true;
+                    for (Long participantId : participants) {
+                        User participant = userService.getUserById(participantId);
+                        if (participant.getIsBot() == false) {
+                            onlyBots = false;
+                        }
+                    }
+                    if (onlyBots) {
+                        for (Long participantId : participants) {
+                            User participant = userService.getUserById(participantId);
+                            userRepository.delete(participant);
+                        }
+                        lobbyService.deleteLobby(userLobby.getId());
+                    }
+                    sendLobbyStateToUsers(userLobby.getId());
+                    logger.info("User {} removed from lobby {}", userId, userLobby.getId());
+
+                    // Also remove LobbyCode in User entity
+                    user = userService.getUserById(userId);
+                    user.setLobbyCode(0);
+
+                    // save updated user
+                    userRepository.save(user);
                 }
-                sendLobbyStateToUsers(userLobby.getId());   
-                logger.info("User {} removed from lobby {}", userId, userLobby.getId());
 
-                // Also remove LobbyCode in User entity
-                User user = userService.getUserById(userId);
-                user.setLobbyCode(0);
-
-                // save updated user
-                userRepository.save(user);
             }
+
+            userSessions.entrySet().removeIf(entry -> entry.getValue().equals(session));
+            logger.info("WebSocket connection closed: {} with status {}", session.getId(), status);
         }
-        
-        userSessions.entrySet().removeIf(entry -> entry.getValue().equals(session));
-        logger.info("WebSocket connection closed: {} with status {}", session.getId(), status);
     }
 
     @Override

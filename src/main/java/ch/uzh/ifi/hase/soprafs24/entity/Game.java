@@ -16,6 +16,7 @@ public class Game {
     private List<String> leaderboard;
     private double cookieSpawnRate;
     private boolean powerupsWanted;
+    private boolean setWinnerRun = false;
 
     public Game() {
         this.gameId = generateUniqueGameId();
@@ -28,6 +29,9 @@ public class Game {
         this.cookieSpawnRate = 0.3;
         this.powerupsWanted = false;
     }
+    public boolean getWinnerRun() {return setWinnerRun;}
+    public void setWinnerRun(boolean setWinnerRun){this.setWinnerRun = setWinnerRun;}
+
     public void setPowerupsWanted(Boolean powerupsWanted){this.powerupsWanted = powerupsWanted;}
 
     public float getTimestamp() {return timestamp;}
@@ -107,7 +111,8 @@ public class Game {
             }
         }
         // Game is over when no players have "alive" coordinates OR timer runs out!
-        return alives < 1 || timestamp <= 0;
+        if (alives <= 1){this.setWinnerRun = true;}
+        return alives <= 1 || timestamp <= 0;
     }
 
     public double getCookieSpawnRate() {

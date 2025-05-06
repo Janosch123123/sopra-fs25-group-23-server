@@ -185,6 +185,26 @@ public class GameService {
                     break;
                 }
             }
+            if (game.getWinnerRun()){
+                for(int i = 0; i < 15; i++) {
+                    updateGameState(game);
+                    game.setTimestamp(game.getTimestamp() - 0.20f);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
+                    try {
+                        broadcastGameState(game); // Sendet Spielzustand an alle WebSocket-Clients
+                    }
+                    catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    try {
+                        Thread.sleep(200); // Wartezeit für den nächsten Loop (z. B. 100ms pro Frame)
+                    }
+                    catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+                game.setWinnerRun(false);
+            }
             try {
                 endGame(game);
             } // send winner to FE etc//
@@ -286,8 +306,10 @@ public class GameService {
         if (winnerName != null) {
             User winner = userRepository.findByUsername(winnerName);
             if (!isSoloLobby) {
+                logger.info("User won before: {}", winner.getWins());
                 winner.setWins(winner.getWins()+1);
                 userRepository.save(winner);
+                logger.info("User won after: {}", winner.getWins());
             }
             logger.info("User {} won the game!", winnerName);
         }
@@ -592,9 +614,12 @@ public class GameService {
         logger.info("Sorting remaining players by length");
         Collections.reverse(remainingPlayers);
         for (Snake player : remainingPlayers) {
-            game.addLeaderboardEntry(player.getUsername());
+            if (!(game.getLeaderboard().contains(player.getUsername()))) {
+                game.addLeaderboardEntry(player.getUsername());
+            }
             User user = userRepository.findByUsername(player.getUsername());
             logger.info("Adding {} to leaderboard", player.getUsername());
+            logger.info("Leaderboard: {}", game.getLeaderboard());
             if (!isSoloLobby) {
                 logger.info("So we are really going here even thow we shoudnt");
                 if (user.getLengthPR() < player.getCoordinates().length) {
@@ -603,6 +628,8 @@ public class GameService {
                     userRepository.flush();
                     }
             }
+            int[][] newCoords = new int[0][0];
+            player.setCoordinates(newCoords);
         }
 
     }
