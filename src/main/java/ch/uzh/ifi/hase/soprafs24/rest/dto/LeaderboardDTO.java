@@ -68,5 +68,5 @@ public class LeaderboardDTO {
     }
     public double getWinRate() {return winRate;}
 
-    public void setWinRate(int winRate) {this.winRate = winRate;}
+    public void setWinRate(double winRate) {this.winRate = winRate;}
 }
