@@ -185,7 +185,9 @@ public class GameService {
                     break;
                 }
             }
-            if (game.getWinnerRun()){
+            if (!game.getLobby().isSolo() && game.getTimestamp()>0){game.setWinnerRun(true);}
+
+            if (game.getWinnerRun() && !game.getLobby().isSolo()){
                 for(int i = 0; i < 15; i++) {
                     updateGameState(game);
                     game.setTimestamp(game.getTimestamp() - 0.20f);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
@@ -204,7 +206,9 @@ public class GameService {
                     }
                 }
                 game.setWinnerRun(false);
+                System.out.println("Winner run is set to false in start: " + game.getWinnerRun());
             }
+            if (game.getLobby().isSolo()){game.setWinnerRun(false);}
             try {
                 endGame(game);
             } // send winner to FE etc//
@@ -295,6 +299,8 @@ public class GameService {
     }
 
     public void endGame(Game game) throws IOException {
+        game.setWinnerRun(false);
+        System.out.println("WinnerRun is set to false in endGame: " + game.getWinnerRun());
         rankRemainingPlayers(game);
 
         // Check if this is a solo lobby
@@ -320,6 +326,7 @@ public class GameService {
                 User user = currentUser.get();
                 if (!isSoloLobby) {
                     user.setPlayedGames(user.getPlayedGames()+1);
+                    System.out.println("Games are updated in endGame: " + user.getPlayedGames());
                     int points = 1 + (user.getWins() / 2) + (user.getKills() / 4);
                     double newLevel = 5 * Math.sqrt((double)points/4) - 1;
                     user.setLevel(newLevel);
@@ -343,6 +350,7 @@ public class GameService {
         message.put("reason", "Last survivor");
         WebSocketHandler webSocketHandler = getWebSocketHandler();
         webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
+        System.out.println("endGame has WinnerRun at the end: " + game.getWinnerRun());
     }
 
     private void updateGameState(Game game) {

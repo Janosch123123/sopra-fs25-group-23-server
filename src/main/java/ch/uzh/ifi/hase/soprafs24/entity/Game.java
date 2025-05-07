@@ -16,7 +16,7 @@ public class Game {
     private List<String> leaderboard;
     private double cookieSpawnRate;
     private boolean powerupsWanted;
-    private boolean setWinnerRun = false;
+    private boolean WinnerRun = false;
 
     public Game() {
         this.gameId = generateUniqueGameId();
@@ -29,24 +29,51 @@ public class Game {
         this.cookieSpawnRate = 0.3;
         this.powerupsWanted = false;
     }
-    public boolean getWinnerRun() {return setWinnerRun;}
-    public void setWinnerRun(boolean setWinnerRun){this.setWinnerRun = setWinnerRun;}
 
-    public void setPowerupsWanted(Boolean powerupsWanted){this.powerupsWanted = powerupsWanted;}
+    public boolean getWinnerRun() {
+        return WinnerRun;
+    }
 
-    public float getTimestamp() {return timestamp;}
-    public void setTimestamp(float timestamp) {this.timestamp = timestamp;}
+    public void setWinnerRun(boolean WinnerRun) {
+        this.WinnerRun = WinnerRun;
+    }
+
+    public void setPowerupsWanted(Boolean powerupsWanted) {
+        this.powerupsWanted = powerupsWanted;
+    }
+
+    public float getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(float timestamp) {
+        this.timestamp = timestamp;
+    }
 
     private static synchronized long generateUniqueGameId() {
         idCounter++; // Zähler wird inkrementiert
         return idCounter;
     }
-    public String getWinner() {return winner;}
-    public void setWinner(String winner) {this.winner = winner;}
 
-    public List<String> getLeaderboard() {return leaderboard;}
-    public void setLeaderboard(List<String> leaderboard) {this.leaderboard = leaderboard;}
-    public void addLeaderboardEntry(String entry) {this.leaderboard.add(0, entry);}
+    public String getWinner() {
+        return winner;
+    }
+
+    public void setWinner(String winner) {
+        this.winner = winner;
+    }
+
+    public List<String> getLeaderboard() {
+        return leaderboard;
+    }
+
+    public void setLeaderboard(List<String> leaderboard) {
+        this.leaderboard = leaderboard;
+    }
+
+    public void addLeaderboardEntry(String entry) {
+        this.leaderboard.add(0, entry);
+    }
 
     public long getGameId() {
         return gameId;
@@ -111,16 +138,23 @@ public class Game {
             }
         }
         // Game is over when no players have "alive" coordinates OR timer runs out!
-        if (alives <= 1){this.setWinnerRun = true;}
-        return alives <= 1 || timestamp <= 0;
+        if (lobby.isSolo()) {
+            return alives <= 0 || timestamp <= 0;
+        }
+        else {
+            return alives <= 1 || timestamp <= 0;
+        }
     }
 
     public double getCookieSpawnRate() {
         return cookieSpawnRate;
     }
+
     public void setCookieSpawnRate(double cookieSpawnRate) {
         this.cookieSpawnRate = cookieSpawnRate;
     }
 
-    public Boolean getPowerupsWanted() {return powerupsWanted;}
+    public Boolean getPowerupsWanted() {
+        return powerupsWanted;
+    }
 }

@@ -388,7 +388,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 Lobby userLobby = lobbyService.findLobbyForUser(userId);
                 if (userLobby != null) {
                     Game game = LobbyService.getGameByLobby(userLobby.getId());
-                    if (game != null && (!game.isGameOver() || game.getWinnerRun())) {
+                    if (game != null && (!game.isGameOver() || game.getWinnerRun())&& !game.getLobby().isSolo()) {
                         int alive = 0;
                         for (Snake snake : game.getSnakes()) {
                             if (snake.getCoordinates().length > 0) {
@@ -403,6 +403,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
                             // update statistic for exiting player while game continues
                             user = userService.getUserById(userId);
                             user.setPlayedGames(user.getPlayedGames() + 1);
+                            System.out.println("WinnerRun in afterConnectionClosed: " + game.getWinnerRun());
+                            System.out.println("Alive payers: " + game.getSnakes());
                             user.setWinRate((double) user.getWins() / user.getPlayedGames());
                             for (Snake snake : game.getSnakes()) {
                                 System.out.println(snake.getUserId());
