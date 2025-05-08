@@ -5,7 +5,6 @@ import ch.uzh.ifi.hase.soprafs24.entity.Snake;
 
 public class Divider extends Item {
     private int[][] FourPositions;
-    private int count = 1;
 
     public Divider(int[] position, String type) {
         // Ruft den Konstruktor von Item mit position und type auf
@@ -37,8 +36,7 @@ public class Divider extends Item {
         snake.setCoordinates(newCoordinates);
     }
     public void checkIfActive(Snake snake){
-        if (count <=0){snake.removeEffect(this);}
-        else{count--;}
+        snake.removeEffect(this);
     }
 
     public int[][] getFourPositions() {return FourPositions;}
