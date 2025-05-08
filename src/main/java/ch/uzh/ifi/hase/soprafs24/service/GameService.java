@@ -83,32 +83,48 @@ public class GameService {
         if (cookieSpawnRate.equals("sugarRush")) {
         }
         else {
-            // X = 13
-            game.addItem(new Cookie(new int[]{13, 11}, "cookie"));
-            game.addItem(new Cookie(new int[]{13, 12}, "cookie"));
-            game.addItem(new Cookie(new int[]{13, 13}, "cookie"));
+            if (!powerupsWanted) {
+                // X = 13
+                game.addItem(new Cookie(new int[]{13, 11}, "cookie"));
+                game.addItem(new Cookie(new int[]{13, 12}, "cookie"));
+                game.addItem(new Cookie(new int[]{13, 13}, "cookie"));
 
-            // X = 14
-            game.addItem(new Cookie(new int[]{14, 11}, "cookie"));
-            game.addItem(new Cookie(new int[]{14, 12}, "cookie"));
-            game.addItem(new Cookie(new int[]{14, 13}, "cookie"));
+                // X = 14
+                game.addItem(new Cookie(new int[]{14, 11}, "cookie"));
+                game.addItem(new Cookie(new int[]{14, 12}, "cookie"));
+                game.addItem(new Cookie(new int[]{14, 13}, "cookie"));
 
-            // X = 15
-            game.addItem(new Cookie(new int[]{15, 11}, "cookie"));
-            game.addItem(new Cookie(new int[]{15, 12}, "cookie"));
-            game.addItem(new Cookie(new int[]{15, 13}, "cookie"));
+                // X = 15
+                game.addItem(new Cookie(new int[]{15, 11}, "cookie"));
+                game.addItem(new Cookie(new int[]{15, 12}, "cookie"));
+                game.addItem(new Cookie(new int[]{15, 13}, "cookie"));
 
-            // X = 16
-            game.addItem(new Cookie(new int[]{16, 11}, "cookie"));
-            game.addItem(new Cookie(new int[]{16, 12}, "cookie"));
-            game.addItem(new Cookie(new int[]{16, 13}, "cookie"));
+                // X = 16
+                game.addItem(new Cookie(new int[]{16, 11}, "cookie"));
+                game.addItem(new Cookie(new int[]{16, 12}, "cookie"));
+                game.addItem(new Cookie(new int[]{16, 13}, "cookie"));
+            }
+            else {
+                // X = 13
+                game.addItem(new Multiplier(new int[]{13, 11}, "powerup"));
+                game.addItem(new Cookie(new int[]{13, 12}, "cookie"));
+                game.addItem(new Multiplier(new int[]{13, 13}, "powerup"));
 
-        }
-        if (powerupsWanted) {
-            game.addItem(new Divider(new int[]{1, 1}, "powerup"));
-            game.addItem(new GoldenCookie(new int[]{28, 1}, "powerup"));
-            game.addItem(new ReverseControl(new int[]{15, 1}, "powerup"));
-            game.addItem(new Multiplier(new int[]{1, 23}, "powerup"));
+                // X = 14
+                game.addItem(new Cookie(new int[]{14, 11}, "cookie"));
+                game.addItem(new GoldenCookie(new int[]{14, 12}, "powerup"));
+                game.addItem(new Cookie(new int[]{14, 13}, "cookie"));
+
+                // X = 15
+                game.addItem(new Cookie(new int[]{15, 11}, "cookie"));
+                game.addItem(new GoldenCookie(new int[]{15, 12}, "powerup"));
+                game.addItem(new Cookie(new int[]{15, 13}, "cookie"));
+
+                // X = 16
+                game.addItem(new Multiplier(new int[]{16, 11}, "powerup"));
+                game.addItem(new Cookie(new int[]{16, 12}, "cookie"));
+                game.addItem(new Multiplier(new int[]{16, 13}, "powerup"));
+            }
         }
         return game;
     }
@@ -660,6 +676,45 @@ public class GameService {
             // Füge die Cookie-Positionen zu den JSON-Daten hinzu
             message.set("cookies", mapper.valueToTree(cookiePositions));
 
+            // Extrahiere die Golden Cookies aus der Items-Liste
+            List<int[]> goldenCookiePositions = new ArrayList<>();
+            for (Item item : game.getItems()) {
+                if ("powerup".equals(item.getType()) && item instanceof GoldenCookie) {
+                    goldenCookiePositions.add(item.getPosition());
+                }
+            }
+            // Füge die Golden Cookie-Positionen zu den JSON-Daten hinzu
+            message.set("goldenCookies", mapper.valueToTree(goldenCookiePositions));
+
+            // Extrahiere die ReverseControl-Items aus der Items-Liste
+            List<int[]> reverseControlPositions = new ArrayList<>();
+            for (Item item : game.getItems()) {
+                if ("powerup".equals(item.getType()) && item instanceof ReverseControl) {
+                    reverseControlPositions.add(item.getPosition());
+                }
+            }
+            // Füge die ReverseControl-Positionen zu den JSON-Daten hinzu
+            message.set("reverseControls", mapper.valueToTree(reverseControlPositions));
+
+            // Extrahiere die Divider-Items aus der Items-Liste
+            List<int[]> dividerPositions = new ArrayList<>();
+            for (Item item : game.getItems()) {
+                if ("powerup".equals(item.getType()) && item instanceof Divider) {
+                    dividerPositions.add(item.getPosition());
+                }
+            }
+            // Füge die Divider-Positionen zu den JSON-Daten hinzu
+            message.set("dividers", mapper.valueToTree(dividerPositions));
+
+            List<int[]> multiplierPositions = new ArrayList<>();
+            for (Item item : game.getItems()) {
+                if ("powerup".equals(item.getType()) && item instanceof Multiplier) {
+                    multiplierPositions.add(item.getPosition());
+                }
+            }
+            // Füge die Divider-Positionen zu den JSON-Daten hinzu
+            message.set("multipliers", mapper.valueToTree(multiplierPositions));
+
             WebSocketHandler webSocketHandler = getWebSocketHandler();
             webSocketHandler.broadcastToLobby(game.getLobby().getId(), message);
 
@@ -740,7 +795,7 @@ public class GameService {
         String coordinates = usedCoordinates.stream()
                 .map(coord -> "[" + coord[0] + ", " + coord[1] + "]")
                 .collect(Collectors.joining(", "));
-        System.out.println("Used Coordinates: [" + coordinates + "]");        return usedCoordinates;
+        return usedCoordinates;
     }
     private boolean containsCoordinate(List<int[]> coordinates, int[] coord) {
         for (int[] c : coordinates) {
