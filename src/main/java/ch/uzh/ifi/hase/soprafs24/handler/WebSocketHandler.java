@@ -229,7 +229,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                         }
 
                     } else {sendErrorMessage(session, "Invalid or missing cookieSpawnRate in settings");return;}
-                    Boolean powerupsWanted = false;
+                    boolean powerupsWanted = false;
                     if (settingsNode.has("powerupsWanted")) {
                         powerupsWanted = settingsNode.get("powerupsWanted").asBoolean();
                     }

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ch.uzh.ifi.hase.soprafs24.service.LobbyService.putGameToLobby;
 
@@ -103,11 +104,12 @@ public class GameService {
             game.addItem(new Cookie(new int[]{16, 13}, "cookie"));
 
         }
-        game.addItem(new Divider(new int[]{1, 1}, "powerup"));
-        game.addItem(new GoldenCookie(new int[]{28, 1}, "powerup"));
-        game.addItem(new ReverseControl(new int[]{15, 1}, "powerup"));
-        game.addItem(new Multiplier(new int[]{1, 23}, "powerup"));
-
+        if (powerupsWanted) {
+            game.addItem(new Divider(new int[]{1, 1}, "powerup"));
+            game.addItem(new GoldenCookie(new int[]{28, 1}, "powerup"));
+            game.addItem(new ReverseControl(new int[]{15, 1}, "powerup"));
+            game.addItem(new Multiplier(new int[]{1, 23}, "powerup"));
+        }
         return game;
     }
 
@@ -168,6 +170,7 @@ public class GameService {
             catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            // Game loop
             while (!game.isGameOver()) {
                 updateGameState(game);
                 game.setTimestamp(game.getTimestamp() - 0.20f);// Aktualisiert den Spielzustand (Bewegungen, Kollisionsprüfung)
@@ -384,7 +387,7 @@ public class GameService {
         }
 
 
-        // Spawne ggf. neue Items (mit 25% Chance)
+        // Spawne ggf. neue Items
         Random random = new Random();
         double chance = random.nextDouble();
         if (chance < game.getCookieSpawnRate()) {
@@ -462,53 +465,124 @@ public class GameService {
     }
 
     private void spawnItem(Game game) {
-        boolean occupied = true;
-        Random random = new Random();
-        int x = 0;
-        int y = 0;
-        while (occupied) {
-            occupied = false;
-            x = random.nextInt(30); // 1 bis 20
-            y = random.nextInt(25); // 1 bis 20
-            for (Snake snake : game.getSnakes()) {
-                for (int[] coordinate : snake.getCoordinates())
-                    if (coordinate[0] == x && coordinate[1] == y) {
-                        occupied = true;
-                        break;
-                    }
-            }
-            for (Item item : game.getItems()) {
-                if (item.getPosition()[0] == x && item.getPosition()[1] == y) {
-                    occupied = true;
-                    break;
-                }
-            }
+        int[] freeCoord = findFreeCoordinate(game);
+        // spawn cookie on all ticks
+        if (freeCoord != null) {
+            Item item = new Cookie(freeCoord, "cookie");
+            game.addItem(item);
+        }
+        // spawn powerup to a certain probability
+        List<int[]> usedCoordinates = findUsedCoordinates(game);
 
+        int[] freeCord = findFreeCoordinate(game);
+        int[] posi = freeCord;
+        while (posi != null) {
+            if (posi != freeCord) {break;}
+            posi = findFourAdjacentCoordinates(game);
         }
         if (game.getPowerupsWanted()){
             Random random1 = new Random();
             // spawn golden Cookie
             double chance = random1.nextDouble();
-            if (chance < 0.00667) {
-                Item item = new GoldenCookie(new int[]{x, y}, "powerup");
-                game.addItem(item);
+            if (chance < 0.06) {
+                if (freeCord != null) {
+                    Item itemP = new GoldenCookie(freeCord, "powerup");
+                    game.addItem(itemP);
+                }
+            }
+            // spawn Multiplier
+            else if (chance < 0.12) {
+                if (freeCord != null) {
+                    Item itemP = new Multiplier(freeCord, "powerup");
+                    game.addItem(itemP);
+                }
             }
             // spawn Reverse Control
-            if (chance < 0.01333) {
-                Item item = new ReverseControl(new int[]{x, y}, "powerup");
-                game.addItem(item);
+            else if (chance < 0.18) {
+                if (posi != null && posi != freeCoord) {
+                    Item itemP = new ReverseControl(posi, "powerup");
+                    game.addItem(itemP);
+                }
             }
             // spawn Divider
-            if (chance < 0.02) {
-                Item item = new Divider(new int[]{x, y}, "powerup");
-                game.addItem(item);
+            else if (chance < 0.24) {
+                if (posi != null && posi != freeCoord) {
+                    Item itemP = new Divider(posi, "powerup");
+                    game.addItem(itemP);
+                }
+            }
+        }
+        return;
+    }
+    private int[] findFreeCoordinate(Game game) {
+        Random random = new Random();
+        List<int[]> usedCoordinates = findUsedCoordinates(game);
+        int maxAttempts = 100; // Maximale Anzahl an Versuchen
+
+        for (int i = 0; i < maxAttempts; i++) {
+            // Zufällige Koordinate generieren
+            int x = random.nextInt(30);
+            int y = random.nextInt(25);
+            int[] newCoord = new int[]{x, y};
+
+            // Prüfen, ob die Koordinate frei ist
+            if (!containsCoordinate(usedCoordinates, newCoord)) {
+                return newCoord; // Freie Koordinate gefunden
+            }
+        }
+
+        // Keine freie Koordinate gefunden
+        return null;
+    }
+
+    private int[] findFourAdjacentCoordinates(Game game) {
+        Random random = new Random();
+        // Maximale Anzahl an Versuchen begrenzen
+        int maxAttempts = 100;
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            // Zufällige Startkoordinate generieren (obere linke Ecke des 2x2 Bereichs)
+            // Wir müssen einen Randabstand einhalten, damit die anderen 3 Koordinaten noch im Spielfeld liegen
+            int x = random.nextInt(28); // Max 29, da wir einen zusätzlichen Platz für x+1 brauchen
+            int y = random.nextInt(23); // Max 24, da wir einen zusätzlichen Platz für y+1 brauchen
+
+            // Die vier Koordinaten des 2x2 Bereichs
+            int[][] fourCoordinates = new int[4][2];
+            fourCoordinates[0] = new int[]{x, y};         // Obere linke Ecke
+            fourCoordinates[1] = new int[]{x + 1, y};     // Obere rechte Ecke
+            fourCoordinates[2] = new int[]{x, y + 1};     // Untere linke Ecke
+            fourCoordinates[3] = new int[]{x + 1, y + 1}; // Untere rechte Ecke
+
+            // Überprüfen, ob alle vier Positionen frei sind
+            boolean allPositionsFree = true;
+
+            for (int[] coordinate : fourCoordinates) {
+                // Überprüfen, ob die Position außerhalb des Spielfelds liegt
+                if (coordinate[0] < 0 || coordinate[0] >= 30 || coordinate[1] < 0 || coordinate[1] >= 25) {
+                    allPositionsFree = false;
+                    break;
+                }
+
+                // Überprüfen, ob die Position bereits belegt ist
+                if (containsCoordinate(findUsedCoordinates(game), coordinate)) {
+                    allPositionsFree = false;
+                    break;
+                }
+
+                    if (!allPositionsFree) {
+                    break; // Wenn eine Position belegt ist, suchen wir eine andere Startposition
+                }
             }
 
-            return;
+            if (allPositionsFree) {
+                return fourCoordinates[0]; // Wir haben vier freie, nebeneinanderliegende Positionen gefunden
+            }
         }
-        Item item = new Cookie(new int[]{x, y}, "cookie");
-        game.addItem(item);
+
+        // Kein freier 2x2 Bereich gefunden
+        return null;
     }
+
 
     public void respondToKeyInputs(Game game, User user, String direction) {
         for (Snake snake : game.getSnakes()) {
@@ -641,6 +715,43 @@ public class GameService {
         }
 
     }
+    public List<int[]> findUsedCoordinates(Game game) {
+        List<int[]> usedCoordinates = new ArrayList<>();
+        for (Snake snake : game.getSnakes()) {
+            usedCoordinates.addAll(Arrays.asList(snake.getCoordinates()));
+
+        }
+        // Koordinaten aller Items hinzufügen
+        for (Item item : game.getItems()) {
+            // Prüfe, ob es sich um ein spezielles Item mit mehreren Positionen handelt
+            if (item instanceof Divider) {
+                // Füge alle vier Positionen des Dividers hinzu
+                usedCoordinates.addAll(Arrays.asList(((Divider) item).getFourPositions()));
+            }
+            else if (item instanceof ReverseControl) {
+                // Füge alle vier Positionen des ReverseControl hinzu
+                usedCoordinates.addAll(Arrays.asList(((ReverseControl) item).getFourPositions()));
+            }
+            else {
+                // Für reguläre Items mit einer Position
+                usedCoordinates.add(item.getPosition());
+            }
+        }
+        String coordinates = usedCoordinates.stream()
+                .map(coord -> "[" + coord[0] + ", " + coord[1] + "]")
+                .collect(Collectors.joining(", "));
+        System.out.println("Used Coordinates: [" + coordinates + "]");        return usedCoordinates;
+    }
+    private boolean containsCoordinate(List<int[]> coordinates, int[] coord) {
+        for (int[] c : coordinates) {
+            if (c[0] == coord[0] && c[1] == coord[1]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 }
 
 
