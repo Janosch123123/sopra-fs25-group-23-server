@@ -309,7 +309,16 @@ public class GameService {
             // Für jeden Effekt den Klassennamen extrahieren
             for (Item effect : snake.getEffects()) {
                 // getSimpleName() gibt nur den Klassennamen ohne Package zurück
-                effectNames.add(effect.getClass().getSimpleName());
+                if (effect instanceof GoldenCookie) {
+                    effectNames.add(effect.getClass().getSimpleName()+((GoldenCookie) effect).getCount());
+                }
+                else if (effect instanceof ReverseControl) {
+                    effectNames.add(effect.getClass().getSimpleName()+((ReverseControl) effect).getTimer());
+                }
+                else if (effect instanceof Multiplier) {
+                    effectNames.add(effect.getClass().getSimpleName()+(float)(Math.round((10-(((Multiplier) effect).getStart()-game.getTimestamp()))*100)/100.0));
+                }
+//                effectNames.add(effect.getClass().getSimpleName());
             }
 
             // Leere Liste oder Liste mit Effektnamen zum Dictionary hinzufügen

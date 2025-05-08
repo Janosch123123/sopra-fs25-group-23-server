@@ -19,4 +19,5 @@ public class GoldenCookie extends Item {
         }
         else{snake.removeEffect(this);}
     }
+    public int getCount() {return count;}
 }

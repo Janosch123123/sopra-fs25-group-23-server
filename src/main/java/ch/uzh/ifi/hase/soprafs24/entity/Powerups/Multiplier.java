@@ -16,8 +16,9 @@ public class Multiplier extends Item {
     }
 
     public void multiplyCookie(Snake snake){  // function gets called when cookie gets eaten and this effect is active
-        if (this.start - snake.getGame().getTimestamp() < 15){
+        if (this.start - snake.getGame().getTimestamp() < 10){
             snake.addGrowCount();
         }else{snake.removeEffect(this);}
     }
+    public float getStart() {return start;}
 }
