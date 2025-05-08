@@ -300,6 +300,25 @@ public class GameService {
         // Füge die Divider-Positionen zu den JSON-Daten hinzu
         message.set("multipliers", mapper.valueToTree(multiplierPositions));
 
+        // Map mit Username als Key und SnakeEffect-Informationen als Value erstellen
+        Map<String, Object> effectDictionary = new HashMap<>();
+        for (Snake snake : game.getSnakes()) {
+            String username = snake.getUsername(); // Benutzername als Key
+            List<String> effectNames = new ArrayList<>();
+
+            // Für jeden Effekt den Klassennamen extrahieren
+            for (Item effect : snake.getEffects()) {
+                // getSimpleName() gibt nur den Klassennamen ohne Package zurück
+                effectNames.add(effect.getClass().getSimpleName());
+            }
+
+            // Leere Liste oder Liste mit Effektnamen zum Dictionary hinzufügen
+            effectDictionary.put(username, effectNames);
+
+        }
+        // Füge die strukturierte Map dem JSON-Objekt hinzu
+        message.set("effects", mapper.valueToTree(effectDictionary));
+
 
         // Get WebSocketHandler lazily only when needed
         WebSocketHandler webSocketHandler = getWebSocketHandler();

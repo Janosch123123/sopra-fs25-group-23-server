@@ -3,6 +3,8 @@ package ch.uzh.ifi.hase.soprafs24.service;
 import javax.transaction.Transactional;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Item;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerdowns.Divider;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerups.GoldenCookie;
 import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Multiplier;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.entity.Lobby;
@@ -19,7 +21,9 @@ import ch.uzh.ifi.hase.soprafs24.entity.Game;
 import ch.uzh.ifi.hase.soprafs24.entity.Snake;
 
 import java.io.IOException;
-import java.util.Arrays; 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 @Transactional
@@ -54,12 +58,19 @@ public class SnakeService {
         } else {
             throw new IllegalArgumentException("Invalid direction: " + snake.getDirection());
         }
+        // check if goldenCookie active
+        List<Item> effectsCopy = new ArrayList<>(snake.getEffects());
+        for (Item effect : effectsCopy) {
+            if (effect instanceof GoldenCookie){((GoldenCookie) effect).growGolden(snake);}
+            if (effect instanceof Divider){((Divider) effect).checkIfActive(snake);}
+        }
+
         // Überprüfe auf Cookie-Kollision
         boolean ateCookie = checkCookieCollision(snake);
         if (ateCookie) {
             snake.addGrowCount();
-            for (Item effect : snake.getEffects()) {
-                if (effect instanceof Multiplier){((Multiplier) effect).multiplyCookie(snake);break;}
+            for (Item effect : effectsCopy) {
+                if (effect instanceof Multiplier){((Multiplier) effect).multiplyCookie(snake);}
             }
         }
         // Neues Koordinaten-Array erstellen
