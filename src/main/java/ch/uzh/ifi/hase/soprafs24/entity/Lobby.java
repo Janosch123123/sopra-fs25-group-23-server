@@ -32,6 +32,15 @@ public class Lobby implements Serializable {
     @Column
     private boolean solo = false;
 
+    @Column
+    private String spawnRate = "Medium";
+
+    @Column
+    private boolean powerupsWanted = false;
+
+    @Column
+    private boolean sugarRush = false;
+
     // Change from a list of User objects to a list of user IDs
     @ElementCollection(fetch = FetchType.EAGER) // Added EAGER fetch type
     @CollectionTable(name = "lobby_participants", joinColumns = @JoinColumn(name = "lobby_id"))
@@ -118,4 +127,13 @@ public class Lobby implements Serializable {
     public void setVisibility(String visibility) {
         this.visibility = visibility;
     }
+
+    public String getSpawnRate() {return spawnRate;}
+    public void setSpawnRate(String spawnRate) {this.spawnRate = spawnRate;}
+
+    public boolean getPowerupsWanted() {return powerupsWanted;}
+    public void setPowerupsWanted(Boolean powerupsWanted) {this.powerupsWanted = powerupsWanted;}
+
+    public boolean getSugarRush() {return sugarRush;}
+    public void setSugarRush(Boolean sugarRush) {this.sugarRush = sugarRush;}
 }
