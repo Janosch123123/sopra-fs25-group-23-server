@@ -161,7 +161,7 @@ public class SnakeService {
                     // updating length-PR
                     String username = snake.getUsername();
                     User victim = userRepository.findByUsername(username);
-                    if (isSoloLobby) {
+                    if (!isSoloLobby) {
                         if (victim.getLengthPR() < snake.getCoordinates().length) {
                             victim.setLengthPR(snake.getCoordinates().length);
                             userRepository.save(victim);
