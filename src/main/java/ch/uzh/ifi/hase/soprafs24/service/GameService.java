@@ -468,6 +468,12 @@ public class GameService {
                     for (int[] powerupFourPosition : powerupFourPositions) {
                         if (head[0] == powerupFourPosition[0] && head[1] == powerupFourPosition[1]) {
                             // Kollision -> Entfernt den Divider aus dem Spiel und wendet den Effekt an
+                            for (Item effect : snake.getEffects()) {
+                                if (effect instanceof ReverseControl){
+                                    snake.removeEffect(effect);
+                                    break;
+                                }
+                            }
                             item.applyEffect(snake);
                             snake.getGame().getItems().remove(item);
                             return; // Eine Kollision wurde festgestellt

@@ -28,18 +28,22 @@ public class ReverseControl extends Item {
     public int getTimer() {return timer;}
 
     public void revertMovement(Snake snake) {
-        if (timer > 0) {
-            timer--;
-            switch (snake.getDirection()) {
-                case "UP": snake.setDirection("DOWN"); break;
-                case "DOWN": snake.setDirection("UP"); break;
-                case "LEFT": snake.setDirection("RIGHT"); break;
-                case "RIGHT": snake.setDirection("LEFT"); break;
-            }
+        timer--;
+        switch (snake.getDirection()) {
+            case "UP":
+                snake.setDirection("DOWN");
+                break;
+            case "DOWN":
+                snake.setDirection("UP");
+                break;
+            case "LEFT":
+                snake.setDirection("RIGHT");
+                break;
+            case "RIGHT":
+                snake.setDirection("LEFT");
+                break;
         }
-        else {
-            snake.removeEffect(this);
-        }
+        if (timer <= 0) {snake.removeEffect(this);}
     }
     public int[][] getFourPositions() {return FourPositions;}
 
