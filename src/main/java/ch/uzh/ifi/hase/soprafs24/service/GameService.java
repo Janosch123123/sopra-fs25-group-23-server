@@ -534,28 +534,28 @@ public class GameService {
             Random random1 = new Random();
             // spawn golden Cookie
             double chance = random1.nextDouble();
-            if (chance < 0.06) {
+            if (chance < 0.02) {
                 if (freeCord != null) {
                     Item itemP = new GoldenCookie(freeCord, "powerup");
                     game.addItem(itemP);
                 }
             }
             // spawn Multiplier
-            else if (chance < 0.12) {
+            else if (chance < 0.04) {
                 if (freeCord != null) {
                     Item itemP = new Multiplier(freeCord, "powerup");
                     game.addItem(itemP);
                 }
             }
             // spawn Reverse Control
-            else if (chance < 0.18) {
+            else if (chance < 0.06) {
                 if (posi != null && posi != freeCoord) {
                     Item itemP = new ReverseControl(posi, "powerup");
                     game.addItem(itemP);
                 }
             }
             // spawn Divider
-            else if (chance < 0.24) {
+            else if (chance < 0.08) {
                 if (posi != null && posi != freeCoord) {
                     Item itemP = new Divider(posi, "powerup");
                     game.addItem(itemP);
