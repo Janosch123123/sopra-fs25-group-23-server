@@ -12,8 +12,12 @@ import java.util.Arrays;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Game;
 import ch.uzh.ifi.hase.soprafs24.entity.Item;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerdowns.Divider;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerdowns.ReverseControl;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Cookie;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerups.GoldenCookie;
+import ch.uzh.ifi.hase.soprafs24.entity.Powerups.Multiplier;
 import ch.uzh.ifi.hase.soprafs24.entity.Snake;
-import ch.uzh.ifi.hase.soprafs24.entity.User;
 
 @Service
 @Transactional
@@ -47,7 +51,7 @@ public class BotService {
             int randomIndex = (int) (Math.random() * availableMoves.size());
             String randomMove = availableMoves.get(randomIndex);
             double probabilityChangeMovement = (Math.random());
-            boolean straightPossible = availableMoves.contains(snake.getDirection());
+            boolean straightPossible = availableMoves.contains(snake.getDirection()) && !isGoingToPickUpPowerDown(game, coordinates, snake.getDirection());
 
             if (!straightPossible) {
                 String oppositeCurve = ("RIGHTCURVE".equals(snake.getPreviousCurve())) ? "LEFTCURVE" : "RIGHTCURVE";
@@ -67,7 +71,7 @@ public class BotService {
                                 snake.getDirection(),
                                 cookieOrPowerUpMoves.get(randomIndexCookie)));
                 snake.setDirection(cookieOrPowerUpMoves.get(randomIndexCookie));
-            } else if (probabilityChangeMovement < 0.1) {
+            } else if (probabilityChangeMovement < 0.15 && !isGoingToPickUpPowerDown(game, coordinates, randomMove)) {
                 snake.setPreviousCurve(
                         mapTwoDirectionsToCurve(
                             snake,
@@ -110,12 +114,40 @@ public class BotService {
             return false;
         }
         for (Item item : game.getItems()) {
-            if ("cookie".equals(item.getType()) || "powerup".equals(item.getType())) {
+            if (item instanceof Cookie || item instanceof GoldenCookie || item instanceof Multiplier) { 
                 int[] cookiePosition = item.getPosition();
 
                 if (newHead[0] == cookiePosition[0] && newHead[1] == cookiePosition[1]) {
                     return true;
                 }
+            }
+        }
+        return false;
+    }
+
+    private boolean isGoingToPickUpPowerDown(Game game, int[][] coordinates, String move) {
+        int[] newHead = newHeadHelper(move, coordinates);
+
+        for (Item item : game.getItems()) {
+            if ((item instanceof Divider) || (item instanceof ReverseControl)) {
+                int[][] powerupFourPositions;
+                if (item instanceof Divider) {
+                    powerupFourPositions = ((Divider) item).getFourPositions();
+                    for (int[] coordinate : powerupFourPositions) {
+                        if (newHead[0] == coordinate[0] && newHead[1] == coordinate[1]) {
+                            return true;
+                        }
+                    }
+
+                } else if (item instanceof ReverseControl) {
+                    powerupFourPositions = ((ReverseControl) item).getFourPositions();
+                    for (int[] coordinate : powerupFourPositions) {
+                        if (newHead[0] == coordinate[0] && newHead[1] == coordinate[1]) {
+                            return true;
+                        }
+                    }
+                }
+
             }
         }
         return false;
