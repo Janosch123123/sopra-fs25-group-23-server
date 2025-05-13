@@ -32,13 +32,13 @@ public class BotService {
     public void updateBot(Game game, Snake snake) {
         int[][] coordinates = snake.getCoordinates();
         List<String> availableMoves = new ArrayList<>();
-        List<String> cookieMoves = new ArrayList<>();
+        List<String> cookieOrPowerUpMoves = new ArrayList<>();
         for (String move : MOVES) {
             if (availableMoves(snake, game, coordinates, move)) {
                 availableMoves.add(move);
             }
-            if (availableCookieMoves(snake, game, coordinates, move)) {
-                cookieMoves.add(move);
+            if (availablePowerUpOrCookieMoves(snake, game, coordinates, move)) {
+                cookieOrPowerUpMoves.add(move);
             }
 
         }
@@ -49,16 +49,33 @@ public class BotService {
             double probabilityChangeMovement = (Math.random());
             boolean straightPossible = availableMoves.contains(snake.getDirection());
 
-            if (cookieMoves.size() > 0) {
-                int randomIndexCookie = (int) (Math.random()*cookieMoves.size());
-                snake.setDirection(cookieMoves.get(randomIndexCookie));
-            } else if (!straightPossible) {
-                snake.setDirection(randomMove);
-            } else if (probabilityChangeMovement < 0.2) {
-                snake.setDirection(randomMove);
-            } 
+            if (!straightPossible) {
+                String oppositeCurve = ("RIGHTCURVE".equals(snake.getPreviousCurve())) ? "LEFTCURVE" : "RIGHTCURVE";
 
-        } 
+                String nextMove = mapCurveToDirection(oppositeCurve, snake.getDirection());
+                if (availableMoves.contains(nextMove)) {
+                    snake.setPreviousCurve(oppositeCurve);
+                    snake.setDirection(nextMove);
+                } else {
+                    snake.setDirection(randomMove);
+                }
+            } else if (cookieOrPowerUpMoves.size() > 0) {
+                int randomIndexCookie = (int) (Math.random() * cookieOrPowerUpMoves.size());
+                snake.setPreviousCurve(
+                        mapTwoDirectionsToCurve(
+                                snake,
+                                snake.getDirection(),
+                                cookieOrPowerUpMoves.get(randomIndexCookie)));
+                snake.setDirection(cookieOrPowerUpMoves.get(randomIndexCookie));
+            } else if (probabilityChangeMovement < 0.1) {
+                snake.setPreviousCurve(
+                        mapTwoDirectionsToCurve(
+                            snake,
+                            snake.getDirection(), 
+                            randomMove));
+                snake.setDirection(randomMove);
+            }
+        }
         return;
     }
 
@@ -69,8 +86,6 @@ public class BotService {
         if (newHead[0] < 0 || newHead[0] > WIDTH || newHead[1] < 0 || newHead[1] > HEIGHT) {
             return false;
         }
-
-
 
         for (Snake otherSnake : game.getSnakes()) {
             if (otherSnake.getCoordinates().length == 0) {
@@ -86,41 +101,85 @@ public class BotService {
             }
         }
         return true;
-        }
+    }
 
-    private boolean availableCookieMoves(Snake snake, Game game, int[][] coordinates, String move) {
+    private boolean availablePowerUpOrCookieMoves(Snake snake, Game game, int[][] coordinates, String move) {
         int[] newHead = newHeadHelper(move, coordinates);
 
         if (newHead[0] < 0 || newHead[0] > WIDTH || newHead[1] < 0 || newHead[1] > HEIGHT) {
             return false;
         }
         for (Item item : game.getItems()) {
-            if ("cookie".equals(item.getType())) {
+            if ("cookie".equals(item.getType()) || "powerup".equals(item.getType())) {
                 int[] cookiePosition = item.getPosition();
 
                 if (newHead[0] == cookiePosition[0] && newHead[1] == cookiePosition[1]) {
-                    return true; 
+                    return true;
                 }
             }
         }
         return false;
-
-    
     }
 
     private int[] newHeadHelper(String move, int[][] coordinates) {
         int[] newHead;
         if (move.equals("UP")) {
-            newHead = new int[]{coordinates[0][0], coordinates[0][1] - 1};
+            newHead = new int[] { coordinates[0][0], coordinates[0][1] - 1 };
         } else if (move.equals("DOWN")) {
-            newHead = new int[] {coordinates[0][0], coordinates[0][1] + 1};
+            newHead = new int[] { coordinates[0][0], coordinates[0][1] + 1 };
         } else if (move.equals("LEFT")) {
-            newHead = new int[]{coordinates[0][0] - 1, coordinates[0][1]};
+            newHead = new int[] { coordinates[0][0] - 1, coordinates[0][1] };
         } else if (move.equals("RIGHT")) {
-            newHead = new int[] {coordinates[0][0] + 1, coordinates[0][1]};
+            newHead = new int[] { coordinates[0][0] + 1, coordinates[0][1] };
         } else {
             throw new IllegalArgumentException("Invalid direction: " + move);
         }
         return newHead;
+    }
+
+    private String mapTwoDirectionsToCurve(Snake snake, String direction1, String direction2) {
+        if (direction1.equals("UP") && direction2.equals("LEFT")) {
+            return "LEFTCURVE";
+        } else if (direction1.equals("UP") && direction2.equals("RIGHT")) {
+            return "RIGHTCURVE";
+        } else if (direction1.equals("DOWN") && direction2.equals("LEFT")) {
+            return "RIGHTCURVE";
+        } else if (direction1.equals("DOWN") && direction2.equals("RIGHT")) {
+            return "LEFTCURVE";
+        } else if (direction1.equals("LEFT") && direction2.equals("UP")) {
+            return "RIGHTCURVE";
+        } else if (direction1.equals("LEFT") && direction2.equals("DOWN")) {
+            return "LEFTCURVE";
+        } else if (direction1.equals("RIGHT") && direction2.equals("UP")) {
+            return "LEFTCURVE";
+        } else if (direction1.equals("RIGHT") && direction2.equals("DOWN")) {
+            return "RIGHTCURVE";
+        }
+        return snake.getPreviousCurve();
+    }
+
+    private String mapCurveToDirection(String curve, String currentDirection) {
+        if (curve.equals("LEFTCURVE")) {
+            if (currentDirection.equals("UP")) {
+                return "LEFT";
+            } else if (currentDirection.equals("DOWN")) {
+                return "RIGHT";
+            } else if (currentDirection.equals("LEFT")) {
+                return "DOWN";
+            } else if (currentDirection.equals("RIGHT")) {
+                return "UP";
+            }
+        } else if (curve.equals("RIGHTCURVE")) {
+            if (currentDirection.equals("UP")) {
+                return "RIGHT";
+            } else if (currentDirection.equals("DOWN")) {
+                return "LEFT";
+            } else if (currentDirection.equals("LEFT")) {
+                return "UP";
+            } else if (currentDirection.equals("RIGHT")) {
+                return "DOWN";
+            }
+        }
+        return null;
     }
 }

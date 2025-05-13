@@ -115,4 +115,15 @@ public class Snake {
     public boolean getIsBot() {
         return this.isBot;
     }
+
+
+    // Only needed for BOTS
+    private String previousCurve;
+
+    public String getPreviousCurve() {
+        return previousCurve;
+    }
+    public void setPreviousCurve(String previousCurve) {
+        this.previousCurve = previousCurve;
+    }
 }
