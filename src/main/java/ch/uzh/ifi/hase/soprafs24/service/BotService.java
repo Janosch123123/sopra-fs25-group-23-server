@@ -63,7 +63,7 @@ public class BotService {
                 } else {
                     snake.setDirection(randomMove);
                 }
-            } else if (cookieOrPowerUpMoves.size() > 0) {
+            } else if (cookieOrPowerUpMoves.size() > 0 && game.getCookieSpawnRate() != 0) {
                 int randomIndexCookie = (int) (Math.random() * cookieOrPowerUpMoves.size());
                 snake.setPreviousCurve(
                         mapTwoDirectionsToCurve(
