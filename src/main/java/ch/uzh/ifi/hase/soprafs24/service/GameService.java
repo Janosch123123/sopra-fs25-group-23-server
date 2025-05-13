@@ -79,53 +79,8 @@ public class GameService {
         // Log player IDs to debug
         logger.info("Creating game with {} players", playersId.size());
         addSnakesToBoard(game, playersId);
-
-        if (cookieSpawnRate.equals("sugarRush")) {
-        }
-        else {
-            if (!powerupsWanted) {
-                // X = 13
-                game.addItem(new Cookie(new int[]{13, 11}, "cookie"));
-                game.addItem(new Cookie(new int[]{13, 12}, "cookie"));
-                game.addItem(new Cookie(new int[]{13, 13}, "cookie"));
-
-                // X = 14
-                game.addItem(new Cookie(new int[]{14, 11}, "cookie"));
-                game.addItem(new Cookie(new int[]{14, 12}, "cookie"));
-                game.addItem(new Cookie(new int[]{14, 13}, "cookie"));
-
-                // X = 15
-                game.addItem(new Cookie(new int[]{15, 11}, "cookie"));
-                game.addItem(new Cookie(new int[]{15, 12}, "cookie"));
-                game.addItem(new Cookie(new int[]{15, 13}, "cookie"));
-
-                // X = 16
-                game.addItem(new Cookie(new int[]{16, 11}, "cookie"));
-                game.addItem(new Cookie(new int[]{16, 12}, "cookie"));
-                game.addItem(new Cookie(new int[]{16, 13}, "cookie"));
-            }
-            else {
-                // X = 13
-                game.addItem(new Multiplier(new int[]{13, 11}, "powerup"));
-                game.addItem(new Cookie(new int[]{13, 12}, "cookie"));
-                game.addItem(new Multiplier(new int[]{13, 13}, "powerup"));
-
-                // X = 14
-                game.addItem(new Cookie(new int[]{14, 11}, "cookie"));
-                game.addItem(new GoldenCookie(new int[]{14, 12}, "powerup"));
-                game.addItem(new Cookie(new int[]{14, 13}, "cookie"));
-
-                // X = 15
-                game.addItem(new Cookie(new int[]{15, 11}, "cookie"));
-                game.addItem(new GoldenCookie(new int[]{15, 12}, "powerup"));
-                game.addItem(new Cookie(new int[]{15, 13}, "cookie"));
-
-                // X = 16
-                game.addItem(new Multiplier(new int[]{16, 11}, "powerup"));
-                game.addItem(new Cookie(new int[]{16, 12}, "cookie"));
-                game.addItem(new Multiplier(new int[]{16, 13}, "powerup"));
-            }
-        }
+        // new function to spawn grid with probability
+        spawnGameGrid(game, cookieSpawnRate, powerupsWanted);
         return game;
     }
 
@@ -839,7 +794,117 @@ public class GameService {
         }
         return false;
     }
+    private void spawnGameGrid(Game game, String cookieSpawnRate, Boolean powerupsWanted) {
+        Random random = new Random();
+        double randomDouble = random.nextDouble();
+        if (cookieSpawnRate.equals("sugarRush")) {}
+        else {
+            if (!powerupsWanted) {
+                if (randomDouble >= 0.3) {
+                    // X = 13 ,  cookie-heap
+                    game.addItem(new Cookie(new int[]{13, 11}, "cookie"));
+                    game.addItem(new Cookie(new int[]{13, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{13, 13}, "cookie"));
 
+                    // X = 14
+                    game.addItem(new Cookie(new int[]{14, 11}, "cookie"));
+                    game.addItem(new Cookie(new int[]{14, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{14, 13}, "cookie"));
+
+                    // X = 15
+                    game.addItem(new Cookie(new int[]{15, 11}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 13}, "cookie"));
+
+                    // X = 16
+                    game.addItem(new Cookie(new int[]{16, 11}, "cookie"));
+                    game.addItem(new Cookie(new int[]{16, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{16, 13}, "cookie"));
+                }
+                else{
+                    // rand von cookie-mase
+                    game.addItem(new Cookie(new int[]{12, 10}, "cookie"));
+                    game.addItem(new Cookie(new int[]{12, 11}, "cookie"));
+                    game.addItem(new Cookie(new int[]{12, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{12, 13}, "cookie"));
+                    game.addItem(new Cookie(new int[]{12, 14}, "cookie"));
+                    game.addItem(new Cookie(new int[]{13, 10}, "cookie"));
+                    game.addItem(new Cookie(new int[]{13, 14}, "cookie"));
+                    game.addItem(new Cookie(new int[]{14, 10}, "cookie"));
+                    game.addItem(new Cookie(new int[]{14, 14}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 10}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 14}, "cookie"));
+                    game.addItem(new Cookie(new int[]{16, 10}, "cookie"));
+                    game.addItem(new Cookie(new int[]{16, 14}, "cookie"));
+                    game.addItem(new Cookie(new int[]{17, 10}, "cookie"));
+                    game.addItem(new Cookie(new int[]{17, 11}, "cookie"));
+                    game.addItem(new Cookie(new int[]{17, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{17, 13}, "cookie"));
+                    game.addItem(new Cookie(new int[]{17, 14}, "cookie"));
+                    // horizontal line
+                    game.addItem(new Cookie(new int[]{13, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{14, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{16, 12}, "cookie"));
+                    // vertical line
+                    game.addItem(new Cookie(new int[]{14, 11}, "cookie"));
+                    game.addItem(new Cookie(new int[]{14, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{14, 13}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 11}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 13}, "cookie"));
+                }
+            }
+            else {
+                if (randomDouble >= 0.3) {
+                    // X = 13  ,  powerup-heap
+                    game.addItem(new Multiplier(new int[]{13, 11}, "powerup"));
+                    game.addItem(new Cookie(new int[]{13, 12}, "cookie"));
+                    game.addItem(new Multiplier(new int[]{13, 13}, "powerup"));
+
+                    // X = 14
+                    game.addItem(new Cookie(new int[]{14, 11}, "cookie"));
+                    game.addItem(new GoldenCookie(new int[]{14, 12}, "powerup"));
+                    game.addItem(new Cookie(new int[]{14, 13}, "cookie"));
+
+                    // X = 15
+                    game.addItem(new Cookie(new int[]{15, 11}, "cookie"));
+                    game.addItem(new GoldenCookie(new int[]{15, 12}, "powerup"));
+                    game.addItem(new Cookie(new int[]{15, 13}, "cookie"));
+
+                    // X = 16
+                    game.addItem(new Multiplier(new int[]{16, 11}, "powerup"));
+                    game.addItem(new Cookie(new int[]{16, 12}, "cookie"));
+                    game.addItem(new Multiplier(new int[]{16, 13}, "powerup"));
+                }
+                else {
+                    // rand von cookie-mase
+                    game.addItem(new Divider(new int[]{12, 10}, "powerup"));
+                    game.addItem(new Cookie(new int[]{12, 12}, "cookie"));
+                    game.addItem(new Divider(new int[]{12, 13}, "powerup"));
+                    game.addItem(new Cookie(new int[]{14, 10}, "cookie"));
+                    game.addItem(new Cookie(new int[]{14, 14}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 10}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 14}, "cookie"));
+                    game.addItem(new Divider(new int[]{16, 10}, "powerup"));
+                    game.addItem(new Divider(new int[]{16, 13}, "powerup"));
+                    game.addItem(new Cookie(new int[]{17, 12}, "cookie"));
+                    // horizontal line
+                    game.addItem(new Cookie(new int[]{13, 12}, "cookie"));
+                    game.addItem(new GoldenCookie(new int[]{14, 12}, "powerup"));
+                    game.addItem(new GoldenCookie(new int[]{15, 12}, "powerup"));
+                    game.addItem(new Cookie(new int[]{16, 12}, "cookie"));
+                    // vertical line
+                    game.addItem(new Cookie(new int[]{14, 11}, "cookie"));
+                    game.addItem(new Cookie(new int[]{14, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{14, 13}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 11}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 12}, "cookie"));
+                    game.addItem(new Cookie(new int[]{15, 13}, "cookie"));
+                }
+            }
+        }
+    }
 
 }
 
