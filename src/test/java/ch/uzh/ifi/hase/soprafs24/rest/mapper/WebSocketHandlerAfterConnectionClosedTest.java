@@ -141,3 +141,5 @@ public class WebSocketHandlerAfterConnectionClosedTest {
         }
     }
 }
+
+//New commit to dockerize
