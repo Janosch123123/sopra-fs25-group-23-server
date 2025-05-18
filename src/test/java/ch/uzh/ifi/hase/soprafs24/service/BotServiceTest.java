@@ -503,3 +503,5 @@ public void availableMoves_emptyCoordinates() {
     }
 }
 }
+
+//redeploy with same configs using this commit
