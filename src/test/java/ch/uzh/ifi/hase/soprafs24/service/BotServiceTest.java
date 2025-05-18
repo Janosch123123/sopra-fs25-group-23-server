@@ -255,24 +255,44 @@ public void updateBot_withPowerDown() {
 
 @Test
 public void updateBot_probabilityTest() {
-    // Test the probability branch (when prob < 0.15)
-    // We'll run the updateBot multiple times and see if direction changes at least once
+    // Clear any existing items to avoid cookie branch
+    testGame.setItems(new ArrayList<>());
+    testGame.setCookieSpawnRate(0); // Ensure cookie spawn rate is zero to avoid cookie branch
     
+    // Setup snake in the middle with plenty of room to move
     testSnake.setCoordinates(new int[][]{{10, 10}, {9, 10}, {8, 10}});
     testSnake.setDirection("RIGHT");
     
-    boolean directionChanged = false;
-    for (int i = 0; i < 20; i++) { // Try 20 times to account for randomness
-        String initialDirection = testSnake.getDirection();
+    // Remove all other snakes to eliminate collisions
+    List<Snake> snakes = new ArrayList<>();
+    snakes.add(testSnake);
+    testGame.setSnakes(snakes);
+    
+    // Track if direction ever changes
+    int directionChanges = 0;
+    int iterations = 50; // Increase iterations for higher statistical reliability
+    
+    for (int i = 0; i < iterations; i++) {
+        // Reset direction before each attempt
+        testSnake.setDirection("RIGHT");
+        
+        // Run the bot logic
         botService.updateBot(testGame, testSnake);
-        if (!testSnake.getDirection().equals(initialDirection)) {
-            directionChanged = true;
-            break;
+        
+        // Check if direction changed
+        if (!testSnake.getDirection().equals("RIGHT")) {
+            directionChanges++;
         }
     }
     
-    // At least one change should occur with high probability
-    assertTrue(directionChanged, "Direction never changed in 20 attempts");
+    // With 0.15 probability and many iterations, we should see some changes
+    // We'll consider the test passing if we get at least a few changes
+    // Using a lower bound that's statistically very unlikely to fail by chance
+    int minimumExpectedChanges = 3; // Much lower than the expected ~7-8 changes with 50 iterations
+    
+    assertTrue(directionChanges >= minimumExpectedChanges, 
+              "Expected at least " + minimumExpectedChanges + " direction changes in " + 
+              iterations + " attempts with 0.15 probability, but got " + directionChanges);
 }
 
 @Test
