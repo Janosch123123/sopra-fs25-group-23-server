@@ -194,6 +194,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
                         sendLobbyStateToUsers(lobbyCode);
 
+
                     }
                     session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
                 } catch (Exception e) {
@@ -241,6 +242,37 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 catch (Exception e) {
                     logger.error("Error changing lobby settings: ", e);
                     sendErrorMessage(session, "Failed to change lobby settings: " + e.getMessage());
+                }
+            }
+            else if ("requestSettings".equals(type)) {
+                String token = getTokenFromSession(session);
+                try {
+                    // Get user from token
+                    User user = userService.getUserByToken(token);
+                    if (user == null) {
+                        sendErrorMessage(session, "Invalid token");
+                        return;
+                    }
+                    long lobbyCode = user.getLobbyCode();
+                    Lobby lobby = lobbyService.getLobbyById(lobbyCode);
+                    if (lobby == null) {
+                        sendErrorMessage(session, "Invalid lobby ID");
+                        return;
+                    }
+                    JsonNode settingsNode = jsonNode.get("settings");
+                    ObjectNode objectNode = mapper.createObjectNode().put("type", "lobbySettings");
+                    ObjectNode settings = mapper.createObjectNode();
+                    settings.put("spawnRate", lobby.getSpawnRate());
+                    settings.put("powerupsWanted", lobby.getPowerupsWanted());
+                    settings.put("sugarRush", lobby.getSugarRush());
+                    objectNode.set("Settings", settings);
+                    broadcastToLobby(lobbyCode, objectNode);
+
+
+                }
+                catch (Exception e) {
+                    logger.error("Error sharing lobby settings: ", e);
+                    sendErrorMessage(session, "Failed to share lobby settings: " + e.getMessage());
                 }
             }
             else if ("startGame".equals(type)) {
