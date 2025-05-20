@@ -229,6 +229,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     if (settingsNode != null && settingsNode.has("sugarRush")){
                         lobby.setSugarRush(settingsNode.get("sugarRush").asBoolean());
                     }
+                    lobbyRepository.save(lobby);
+                    lobbyRepository.flush();
                     ObjectNode objectNode = mapper.createObjectNode().put("type", "lobbySettings");
                     ObjectNode settings = mapper.createObjectNode();
                     settings.put("spawnRate", lobby.getSpawnRate());
