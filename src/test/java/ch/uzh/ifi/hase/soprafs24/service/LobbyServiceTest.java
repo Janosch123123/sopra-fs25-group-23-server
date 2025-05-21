@@ -413,4 +413,40 @@ public class LobbyServiceTest {
         // Verify repository interactions
         verify(lobbyRepository, times(2)).save(any(Lobby.class));
     }
+
+@Test
+public void addBotHelper_successfullyAddsBotToLobby() throws Exception {
+    // Arrange
+    Lobby lobby = new Lobby();
+    lobby.setId(1L);
+    
+    User botUser = new User();
+    botUser.setId(2L);
+    botUser.setUsername("Bot1");
+    
+    // Mock repository and service responses
+    when(lobbyRepository.findById(1L)).thenReturn(Optional.of(lobby));
+    when(userService.createBot()).thenReturn(botUser);
+    when(lobbyRepository.save(any(Lobby.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    
+    // Access the private method via reflection
+    Method addBotHelperMethod = LobbyService.class.getDeclaredMethod("addBotHelper", Lobby.class);
+    addBotHelperMethod.setAccessible(true);
+    
+    // Act
+    addBotHelperMethod.invoke(lobbyService, lobby);
+    
+    // Assert
+    verify(userService).createBot();
+    verify(lobbyRepository).save(any(Lobby.class));
+    verify(webSocketHandler).sendLobbyStateToUsers(1L);
+    
+    // We can't use verify on lobbyService itself since it's not a mock
+    // Instead, we can verify that the userRepository was called with the bot user
+    // which happens inside the addLobbyCodeToUser method
+    verify(userRepository).save(botUser);
+    
+    // Check that the bot was added to the lobby participants
+    assertTrue(lobby.getParticipantIds().contains(botUser.getId()));
+}
 }
