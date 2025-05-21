@@ -25,6 +25,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.mockito.MockedStatic;
 import static org.mockito.Mockito.mockStatic;
+import org.mockito.ArgumentCaptor;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -542,5 +544,51 @@ public class WebSocketHandlerExtendedTest {
         
         // Verify response contains full reason
         verify(session).sendMessage(any(TextMessage.class));
+    }
+
+    @Test
+    void testHandleTextMessage_RequestSettings() throws Exception {
+        // Setup
+        User testUser = new User();
+        testUser.setId(1L);
+        testUser.setToken("test-token");
+        testUser.setLobbyCode(100L);
+        
+        Lobby testLobby = new Lobby();
+        testLobby.setId(100L);
+        testLobby.setAdminId(1L);
+        testLobby.setSpawnRate("Fast");
+        testLobby.setPowerupsWanted(true);
+        testLobby.setSugarRush(false);
+        
+        when(userService.getUserByToken("test-token")).thenReturn(testUser);
+        when(lobbyService.getLobbyById(100L)).thenReturn(testLobby);
+        
+        // Create test message
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.put("type", "requestSettings");
+        ObjectNode settingsNode = objectMapper.createObjectNode();
+        requestBody.set("settings", settingsNode);
+        TextMessage textMessage = new TextMessage(objectMapper.writeValueAsString(requestBody));
+        
+        // Mock broadcast to prevent actual networking
+        doNothing().when(webSocketHandler).broadcastToLobby(anyLong(), any(ObjectNode.class));
+        
+        // Execute
+        webSocketHandler.handleTextMessage(session, textMessage);
+        
+        // Verify
+        ArgumentCaptor<ObjectNode> messageCaptor = ArgumentCaptor.forClass(ObjectNode.class);
+        verify(webSocketHandler).broadcastToLobby(eq(100L), messageCaptor.capture());
+        
+        // Verify the message content
+        ObjectNode capturedMessage = messageCaptor.getValue();
+        assertEquals("lobbySettings", capturedMessage.get("type").asText());
+        
+        JsonNode settingsObject = capturedMessage.get("Settings");
+        assertNotNull(settingsObject, "Settings object should be present in the message");
+        assertEquals("Fast", settingsObject.get("spawnRate").asText());
+        assertTrue(settingsObject.get("powerupsWanted").asBoolean());
+        assertFalse(settingsObject.get("sugarRush").asBoolean());
     }
 }
