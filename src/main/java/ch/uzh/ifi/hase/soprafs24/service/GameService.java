@@ -273,7 +273,9 @@ public class GameService {
                 else if (effect instanceof Multiplier) {
                     effectNames.add(effect.getClass().getSimpleName()+(float)(Math.round((10-(((Multiplier) effect).getStart()-game.getTimestamp()))*100)/100.0));
                 }
-//                effectNames.add(effect.getClass().getSimpleName());
+                else if (effect instanceof Divider){
+                    effectNames.add(effect.getClass().getSimpleName());
+                }
             }
 
             // Leere Liste oder Liste mit Effektnamen zum Dictionary hinzufügen
