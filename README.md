@@ -1,30 +1,98 @@
-# SoPra RESTful Service Template FS25
+# 🐍 Snake With Friends
 
-## Getting started with Spring Boot
+Snake With Friends is a modern multiplayer twist on the classic Snake game, with a focus on fun, multiplayer interaction, and personalization. Whether alone, with friends, or strangers: there's something for everyone, even your favorite background music!
+
+## Technologies Used
+
+The technologies we used for this project are:
+
+* Java
+* Gradle
+* Spring Boot (Backend)
+* WebSockets (Real-time Communication)
+* TypeScript & React (Frontend)
+* Google App Engine (Deployment)
+* Docker (Containerization)
+
+## High-Level Components
+
+Our backend is structured into several main components that enable the game's core functionality.
+
+### Lobby Management
+
+Responsible for:
+
+* Creating and joining lobbies
+* Managing lobby participants
+* Handling lobby settings
+* Broadcasting messages to players in a lobby
+
+**Main class**: [`LobbyService.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/service/LobbyService.java)  
+**Controller**: [`LobbyController.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/controller/LobbyController.java)  
+**Repository**: [`LobbyRepository.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/repository/LobbyRepository.java)  
+**Session management**: [`WebSocketHandler.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/handler/WebSocketHandler.java)  
+
+### User Management
+
+Responsible for:
+
+* User registration and login
+* Managing user profiles and statuses
+* Tracking user statistics
+
+**Main class**: [`UserService.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/service/UserService.java)  
+**Controller**: [`UserController.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/controller/UserController.java)  
+**Entities**: [`User.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/entity/User.java)  
+**DTOs**: [`UserPostDTO.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/rest/dto/UserPostDTO.java), [`UserGetDTO.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/rest/dto/UserGetDTO.java)  
+**Repository**: [`UserRepository.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/repository/UserRepository.java)  
+**Mapper**: [`DTOMapper.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/rest/mapper/DTOMapper.java)  
+**Constants**: [`UserStatus.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/constant/UserStatus.java)  
+
+### Game Logic
+
+Responsible for:
+
+* Initializing games
+* Managing snake movements and game ticks
+* Handling power-ups, power-downs, and cookies
+* Triggering end-game conditions
+* Broadcasting game state updates via WebSockets
+* Updating global leaderboard and user statistics
+
+**Main class**: [`GameService.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/service/GameService.java)  
+**Sub-services**: [`SnakeService.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/service/SnakeService.java), [`BotService.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/service/BotService.java)  
+**Entities**: [`Game.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/entity/Game.java), [`Snake.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/entity/Snake.java), [`Item.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/entity/Item.java)  
+**Handler**: [`WebSocketHandler.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/handler/WebSocketHandler.java)  
+**Configuration**: [`WebSocketConfig.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/config/WebSocketConfig.java)  
+
+### Power-Ups and Power-Downs
+
+Special in-game items with unique effects, handled as part of the game loop.
+
+* Power-ups: [`Cookie.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/entity/Powerups/Cookie.java), [`GoldenCookie.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/entity/Powerups/GoldenCookie.java), [`Multiplier.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/entity/Powerups/Multiplier.java)  
+* Power-downs: [`Divider.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/entity/Powerdowns/Divider.java), [`ReverseControl.java`](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/entity/Powerdowns/ReverseControl.java)  
+
+These items are attached to the `Item` entity and controlled via game rules and the `GameService`.
+
+
+## Launch & Deployment
+
+### Prerequisites
+
+#### Spring Boot
+
+Spring Boot is the backbone technology in this project.
+
+Getting started with Spring Boot:
 -   Documentation: https://docs.spring.io/spring-boot/docs/current/reference/html/index.html
 -   Guides: http://spring.io/guides
     -   Building a RESTful Web Service: http://spring.io/guides/gs/rest-service/
     -   Building REST services with Spring: https://spring.io/guides/tutorials/rest/
 
-## Setup this Template with your IDE of choice
-Download your IDE of choice (e.g., [IntelliJ](https://www.jetbrains.com/idea/download/), [Visual Studio Code](https://code.visualstudio.com/), or [Eclipse](http://www.eclipse.org/downloads/)). Make sure Java 17 is installed on your system (for Windows, please make sure your `JAVA_HOME` environment variable is set to the correct version of Java).
+### Development
 
-### IntelliJ
-If you consider to use IntelliJ as your IDE of choice, you can make use of your free educational license [here](https://www.jetbrains.com/community/education/#students).
-1. File -> Open... -> SoPra server template
-2. Accept to import the project as a `gradle project`
-3. To build right click the `build.gradle` file and choose `Run Build`
+#### Build
 
-### VS Code
-The following extensions can help you get started more easily:
--   `vmware.vscode-spring-boot`
--   `vscjava.vscode-spring-initializr`
--   `vscjava.vscode-spring-boot-dashboard`
--   `vscjava.vscode-java-pack`
-
-**Note:** You'll need to build the project first with Gradle, just click on the `build` command in the _Gradle Tasks_ extension. Then check the _Spring Boot Dashboard_ extension if it already shows `soprafs24` and hit the play button to start the server. If it doesn't show up, restart VS Code and check again.
-
-## Building with Gradle
 You can use the local Gradle Wrapper to build the application.
 -   macOS: `./gradlew`
 -   Linux: `./gradlew`
@@ -32,13 +100,14 @@ You can use the local Gradle Wrapper to build the application.
 
 More Information about [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) and [Gradle](https://gradle.org/docs/).
 
-### Build
+
+Then, you can build the project using:
 
 ```bash
 ./gradlew build
 ```
 
-### Run
+#### Run
 
 ```bash
 ./gradlew bootRun
@@ -46,15 +115,17 @@ More Information about [Gradle Wrapper](https://docs.gradle.org/current/userguid
 
 You can verify that the server is running by visiting `localhost:8080` in your browser.
 
-### Test
+#### Test
 
 ```bash
 ./gradlew test
 ```
 
-### Development Mode
-You can start the backend in development mode, this will automatically trigger a new build and reload the application
-once the content of a file has been changed.
+Useful guide on testing: [link](https://www.baeldung.com/spring-boot-testing).
+
+#### Development Mode
+
+You can start the backend in development mode, this will automatically trigger a new build and reload the application once the content of a file has been changed.
 
 Start two terminal windows and run:
 
@@ -68,11 +139,13 @@ If you want to avoid running all tests with every change, use the following comm
 
 `./gradlew build --continuous -xtest`
 
-## API Endpoint Testing with Postman
+#### API Endpoint Testing with Postman
+
 We recommend using [Postman](https://www.getpostman.com) to test your API Endpoints.
 
-## Debugging
-If something is not working and/or you don't know what is going on. We recommend using a debugger and step-through the process step-by-step.
+#### Debugging
+
+If something is not working and/or you don't know what is going on, we recommend using a debugger and step-through the process step-by-step.
 
 To configure a debugger for SpringBoot's Tomcat servlet (i.e. the process you start with `./gradlew bootRun` command), do the following:
 
@@ -83,36 +156,45 @@ To configure a debugger for SpringBoot's Tomcat servlet (i.e. the process you st
 5. Set breakpoints in the application where you need it
 6. Step through the process one step at a time
 
-## Testing
-Have a look here: https://www.baeldung.com/spring-boot-testing
+#### How to do releases
 
-<br>
-<br>
-<br>
+We have set up a Github Actions Workflow that automatically deploys whenever code is pushed on the main branch.
 
-## Docker
+* Workflow file for main commits: `main.yml`
+* Workflow file for pull requests (for running tests): `pr.yml`
 
-### Introduction
-This year, for the first time, Docker will be used to ease the process of deployment.\
-Docker is a tool that uses containers as isolated environments, ensuring that the application runs consistently and uniformly across different devices.\
-Everything in this repository is already set up to minimize your effort for deployment.\
-All changes to the main branch will automatically be pushed to dockerhub and optimized for production.
+--- 
 
-### Setup
-1. **One** member of the team should create an account on [dockerhub](https://hub.docker.com/), _incorporating the group number into the account name_, for example, `SoPra_group_XX`.\
-2. This account then creates a repository on dockerhub with the _same name as the group's Github repository name_.\
-3. Finally, the person's account details need to be added as [secrets](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository) to the group's repository:
-    - dockerhub_username (the username of the dockerhub account from step 1, for example, `SoPra_group_XX`)
-    - dockerhub_password (a generated PAT([personal access token](https://docs.docker.com/docker-hub/access-tokens/)) of the account with read and write access)
-    - dockerhub_repo_name (the name of the dockerhub repository from step 2)
+## 👥 Team
 
-### Pull and run
-Once the image is created and has been successfully pushed to dockerhub, the image can be run on any machine.\
-Ensure that [Docker](https://www.docker.com/) is installed on the machine you wish to run the container.\
-First, pull (download) the image with the following command, replacing your username and repository name accordingly.
+- [Marc Mahler](https://github.com/MarcMahler)
+- [Janosch Beck](https://github.com/Janosch123123)
+- [Jarno Bucher](https://github.com/StalyTV)
+- [Joel Schmidt](https://github.com/jojo2-8902)
+- [Luke Fohringer](https://github.com/LuckyLuke637)
 
-```docker pull <dockerhub_username>/<dockerhub_repo_name>```
+---
 
-Then, run the image in a container with the following command, again replacing _<dockerhub_username>_ and _<dockerhub_repo_name>_ accordingly.
+## 🙏 Acknowledgments
 
-```docker run -p 3000:3000 <dockerhub_username>/<dockerhub_repo_name>```
+- SOPRA team at UZH
+- Inspired by classic Snake games
+- Feedback from testers during development
+
+---
+
+## 📋 Roadmap
+
+For developers interested in contributing to Snake With Friends, here are the top features we'd like to see implemented:
+
+1. **Mobile Support**: Adapt the user interface for mobile devices and implement touch controls for the snake.
+
+2. **Custom Snake Customization**: Allow users to customize their snake's appearance with different skins, patterns, or accessories that can be unlocked through gameplay.
+
+3. **Tournament Mode**: Implement a structured tournament system where players can compete in brackets to determine an ultimate winner across multiple games.
+
+---
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](https://github.com/Janosch123123/sopra-fs25-group-23-server/blob/main/LICENSE) file for details.
